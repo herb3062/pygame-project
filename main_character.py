@@ -23,8 +23,8 @@ class Player(pygame.sprite.Sprite):
         self.current_frame = 0
         self.frame_counter = 0
         self.image = self.idle_images[0]
-        self.image = pygame.transform.scale(self.image, (40, 60))  # Shrink character
-        self.rect = pygame.Rect(x, y, 100, 130) 
+        
+        
 
         self.speed = 5
         self.jump_power = 17
@@ -36,7 +36,7 @@ class Player(pygame.sprite.Sprite):
 
     def load_images(self, file_list, base_path="assets/character_animations/"):
         images = [pygame.image.load(base_path + file).convert_alpha() for file in file_list]
-        return [pygame.transform.scale(img, (100, 130)) for img in images]
+        return [pygame.transform.scale(img, (160, 160)) for img in images]
 
     def update(self, keys, screen_height, tiles):
         dx = 0
