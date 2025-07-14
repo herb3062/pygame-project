@@ -42,7 +42,8 @@ slime = Slime(
     frame_height=128,
     num_frames=8,
     left_bound=300,
-    right_bound=500
+    right_bound=500,
+    speed=1,
 )
 
 slimes = pygame.sprite.Group(slime)

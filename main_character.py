@@ -47,6 +47,10 @@ class Player(pygame.sprite.Sprite):
         self.direction = 'right'
         self.state = 'idle' 
 
+        self.invincible = False
+        self.invincible_timer = 0
+        self.invincible_duration = 60
+
         self.prev_state = self.state
 
         self.current_frame = 0
@@ -156,6 +160,22 @@ class Player(pygame.sprite.Sprite):
             self.frame_counter = 0
             self.prev_state = self.state
 
+
+        if self.current_health <= 0:
+            # Respawn logic
+            self.hitbox.topleft = (100, 0)
+            self.velocity_y = 0
+            self.on_ground = False
+            self.current_health = self.max_health
+            self.state = 'idle'
+
+        # Invincibility timer logic
+        if self.invincible:
+            self.invincible_timer += 1
+            if self.invincible_timer >= self.invincible_duration:
+                self.invincible = False
+                self.invincible_timer = 0
+
         self.animate()
 
 
@@ -198,7 +218,16 @@ class Player(pygame.sprite.Sprite):
 
         if self.direction == 'left':
             self.image = pygame.transform.flip(self.image, True, False)
-    
+
+        # Flash effect during invincibility
+        if self.invincible:
+            if (self.invincible_timer // 5) % 2 == 0:
+                self.image.set_alpha(100)  # semi-transparent
+            else:
+                self.image.set_alpha(255)
+        else:
+            self.image.set_alpha(255)
+        # Reset alpha when not invincible    
 
     def draw_healthbar(self,surface):
         bar_width = 100

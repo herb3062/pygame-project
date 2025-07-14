@@ -30,6 +30,15 @@ class Slime(pygame.sprite.Sprite):
 
         self.attacking = False  # Track attack state
 
+        self.has_damaged = False
+
+
+        self.max_health = 30
+        self.current_health = self.max_health
+        self.dead = False
+        self.death_timer = 0
+        self.respawn_delay = 300
+
     def load_frames(self, sprite_sheet, frame_width, frame_height, num_frames):
         frames = []
         for i in range(num_frames):
@@ -40,8 +49,50 @@ class Slime(pygame.sprite.Sprite):
         return frames
 
     def update(self, player):
+
+        if self.dead:
+            self.death_timer += 1
+            if self.death_timer >= self.respawn_delay:
+                self.dead = False
+                self.current_health = self.max_health
+                self.rect.x = self.left_bound  # Optional: reset position
+            self.image.set_alpha(0)
+            return
+        else:
+            self.image.set_alpha(255)
+
+        # Check if player hits Slime from above
+        if player.velocity_y > 0 and player.hitbox.bottom <= self.hitbox.top + 20 and self.hitbox.colliderect(player.hitbox):
+            self.current_health -= 15
+            player.velocity_y = -30  # trampoline slime hehe
+            if self.current_health <= 0:
+                self.dead = True
+                self.death_timer = 0
+
+
+
+
         # Detect collision with player's rect using hitbox
         self.attacking = self.hitbox.colliderect(player.rect)
+        if self.attacking:
+            # Only deal damage if the player is not invincible
+            if not self.has_damaged and not player.invincible:
+                player.current_health -= 10
+
+                # Start invincibility
+                player.invincible = True
+                player.invincible_timer = 0
+
+                # Push the player back
+               # pushback_amount = 40
+                #if self.direction == 1:
+                 #   player.hitbox.x += pushback_amount
+                #else:
+                 #S   player.hitbox.x -= pushback_amount
+
+                self.has_damaged = True
+        else:
+            self.has_damaged = False
 
         # Move only if not attacking
         if not self.attacking:
@@ -73,3 +124,13 @@ class Slime(pygame.sprite.Sprite):
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.bottom = self.rect.bottom
 
+    def draw_healthbar(self,surface):
+        bar_width = 100
+        bar_height= 8
+        bar_x=self.rect.x
+        bar_y=self.rect.y -20
+
+        health_ratio = self.current_health/self.max_health
+        pygame.draw.rect(surface,(255,0,0),(bar_x,bar_y,bar_width,bar_height))
+
+        pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
