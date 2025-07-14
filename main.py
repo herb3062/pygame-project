@@ -65,11 +65,21 @@ while running:
     for tile in tiles:
         tile.draw(screen)
 
-    slimes.update()
+    slime.update(player)
     slimes.draw(screen)
     for slime in slimes:
-        pygame.draw.rect(screen, (255, 0, 0), slime.rect, 2)  # Red box for slime 
+        slime.update(player)
+        pygame.draw.rect(screen, (255, 0, 0), slime.hitbox, 2)
+        if slime.hitbox.colliderect(player.rect):
+            if slime.direction == 1:  # Slime moving right
+                player.rect.x += 10  # Push right
+            else:  # Slime moving left
+                player.rect.x -= 10  # Push left
+
+
     pygame.draw.line(screen, (255, 0, 0), (0, 500), (800, 500), 2) #red line for ground
+
+
     for sprite in all_sprites:
         pygame.draw.rect(screen, (255, 0, 0), sprite.rect, 2)  # Red box around player
 

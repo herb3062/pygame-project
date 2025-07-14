@@ -24,7 +24,7 @@ class Player(pygame.sprite.Sprite):
         self.frame_counter = 0
         self.image = self.idle_images[0]
         
-        
+        self.rect = pygame.Rect(x, y, 100, 130) 
 
         self.speed = 5
         self.jump_power = 17
