@@ -1,20 +1,34 @@
 # enemy_Slime.py
 import pygame
 
+from main_character import Player
+
 class Slime(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_sheet, frame_width, frame_height, num_frames, left_bound, right_bound, speed=2):
         super().__init__()
-        
+
         self.frames = self.load_frames(sprite_sheet, frame_width, frame_height, num_frames)
+        self.walk_frames = self.frames
+
+        # Load attack sprite sheet
+        attack_sheet = pygame.image.load("assets/character_animations/enemy_slime/slime_attack_1.png").convert_alpha()
+        self.attack_frames = self.load_frames(attack_sheet, 128, 128, 5)
+
+
         self.frame_index = 0
         self.frame_counter = 0
         self.image = self.frames[self.frame_index]
         self.rect = self.image.get_rect(topleft=(x, y))
+        self.hitbox = pygame.Rect(0, 0, self.rect.width -60, self.rect.height - 100)  # Adjust hitbox size as needed
+        self.hitbox.centerx = self.rect.centerx
+        self.hitbox.bottom = self.rect.bottom  # align it to the bottom of the slime
         
         self.left_bound = left_bound
         self.right_bound = right_bound
         self.speed = speed
         self.direction = 1  # 1 = right, -1 = left
+
+        self.attacking = False  # Track attack state
 
     def load_frames(self, sprite_sheet, frame_width, frame_height, num_frames):
         frames = []
@@ -25,21 +39,37 @@ class Slime(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self):
-        # Move
-        self.rect.x += self.speed * self.direction
-        if self.rect.right >= self.right_bound or self.rect.left <= self.left_bound:
-            self.direction *= -1
+    def update(self, player):
+        # Detect collision with player's rect using hitbox
+        self.attacking = self.hitbox.colliderect(player.rect)
+
+        # Move only if not attacking
+        if not self.attacking:
+            self.rect.x += self.speed * self.direction
+            if self.rect.right >= self.right_bound or self.rect.left <= self.left_bound:
+                self.direction *= -1
+
+        # Choose animation frames
+        current_frames = self.attack_frames if self.attacking else self.frames
+
+        # Clamp frame index if switching between animations with different lengths
+        if self.frame_index >= len(current_frames):
+            self.frame_index = 0
 
         # Animate
         self.frame_counter += 1
-        if self.frame_counter >= 8:  # Adjust speed
+        if self.frame_counter >= 8:
             self.frame_counter = 0
-            self.frame_index = (self.frame_index + 1) % len(self.frames)
-            self.image = self.frames[self.frame_index]
+            self.frame_index = (self.frame_index + 1) % len(current_frames)
+        self.image = current_frames[self.frame_index]
 
         # Flip image based on direction
         if self.direction == -1:
-            self.image = pygame.transform.flip(self.frames[self.frame_index], True, False)
+            self.image = pygame.transform.flip(current_frames[self.frame_index], True, False)
         else:
-            self.image = self.frames[self.frame_index]
+            self.image = current_frames[self.frame_index]
+
+        # Update hitbox to match sprite position
+        self.hitbox.centerx = self.rect.centerx
+        self.hitbox.bottom = self.rect.bottom
+

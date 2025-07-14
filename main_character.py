@@ -1,10 +1,8 @@
 import pygame
 
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-
         self.walk_images = self.load_images([
             'fighter_walk_0009.png', 'fighter_walk_0011.png', 'fighter_walk_0012.png',
             'fighter_walk_0013.png', 'fighter_walk_0014.png', 'fighter_walk_0015.png'
@@ -26,83 +24,189 @@ class Player(pygame.sprite.Sprite):
         
         self.rect = pygame.Rect(x, y, 100, 130) 
 
-        self.speed = 5
+        self.run_images= self.load_images([
+            'fighter_run_0017.png','fighter_run_0018.png',
+            'fighter_run_0019.png','fighter_run_0020.png',
+            'fighter_run_0021.png','fighter_run_0023.png',
+            'fighter_run_0024.png',
+
+
+
+
+        ])
+        self.max_health=100
+        self.current_health = 100
+
+        self.speed = 3
+        self.run_speed=5
+        self.damage= 5
         self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
         self.on_ground = True
         self.direction = 'right'
-        self.state = 'idle'  # could be 'idle', 'walk', or 'jump'
+        self.state = 'idle' 
+
+        self.prev_state = self.state
+
+        self.current_frame = 0
+        self.frame_counter = 0
+        
+       
+
+        self.image = self.idle_images[0]
+        self.rect  = self.image.get_rect(topleft=(x, y))
+
+        # Shrink width and height so the feet rest exactly on the tiles
+        self.hitbox = self.rect.inflate(100, 60)  
+        self.hitbox.bottom = self.rect.bottom      
+
+
+        
 
     def load_images(self, file_list, base_path="assets/character_animations/"):
-        images = [pygame.image.load(base_path + file).convert_alpha() for file in file_list]
-        return [pygame.transform.scale(img, (160, 160)) for img in images]
+    # """Load → crop transparent padding under feet → return Surfaces."""
+        images = []
+        for file in file_list:
+            img = pygame.image.load(base_path + file).convert_alpha()
 
-    def update(self, keys, screen_height, tiles):
-        dx = 0
-        moved = False
+            crop = img.get_bounding_rect(min_alpha=1)  
+            img  = img.subsurface(crop).copy()
 
-        if keys[pygame.K_LEFT]:
-            dx = -self.speed
-            self.direction = 'left'
-            self.state = 'walk'
-            moved = True
-        elif keys[pygame.K_RIGHT]:
-            dx = self.speed
-            self.direction = 'right'
-            self.state = 'walk'
-            moved = True
+            img = pygame.transform.scale(img, (40, 60))
+            images.append(img)
+        return images
 
-        if keys[pygame.K_SPACE] and self.on_ground:
-            self.velocity_y = -self.jump_power
-            self.on_ground = False
-            self.state = 'jump'
+    def update(self, keys,screen_width, screen_height, tiles):
+        dx=0
 
+        if self.state != 'attack':   
+
+                                            
+            if keys[pygame.K_LEFT]:
+                dx = -self.speed
+                self.direction = 'left'
+                self.state     = 'walk'
+            elif keys[pygame.K_RIGHT]:
+                dx = self.speed
+                self.direction = 'right'
+                self.state     = 'walk'
+            else:
+                if self.on_ground:
+                    self.state = 'idle'
+
+            if keys[pygame.K_SPACE] and self.on_ground:
+                self.velocity_y = -self.jump_power
+                self.on_ground  = False
+                self.state      = 'jump'
+
+            if keys[pygame.K_e]:                 
+                self.state        = 'attack'
+                
+            
+            if keys[pygame.K_q] and dx != 0:
+              if self.direction == 'right':
+                  self.state = 'run'
+                  dx =  self.run_speed
+              else: 
+                  self.state = 'run_left'
+                  dx = -self.run_speed
+            
+
+        
+            
+
+       
         self.velocity_y += self.gravity
-        dy = self.velocity_y
-
-         # Platform collision detection
-        self.on_ground = False
+        self.hitbox.y   += self.velocity_y                             
+        self.on_ground   = False
         for tile in tiles:
-            if self.rect.colliderect(tile.rect):
-                # Check falling onto tile
-                if self.velocity_y > 0 and self.rect.bottom <= tile.rect.bottom:
-                    dy = tile.rect.top - self.rect.bottom
-                    self.velocity_y = 0
-                    self.on_ground = True
-                    if not moved:
+            if self.hitbox.colliderect(tile.rect):                    
+                if self.velocity_y > 0:                              
+                    self.hitbox.bottom = tile.rect.top
+                    self.velocity_y    = 0
+                    self.on_ground     = True
+                    if self.state not in ('attack', 'walk', 'run', 'run_left'):
                         self.state = 'idle'
-                        
-         # Apply screen bottom logic (falling off)
-        if self.rect.y + dy >= screen_height:
-            self.rect.y = 0  # respawn at top
+
+        self.hitbox.x += dx                                            
+        for tile in tiles:
+            if self.hitbox.colliderect(tile.rect):
+                if dx > 0:
+                    self.hitbox.right = tile.rect.left
+                elif dx < 0:
+                    self.hitbox.left  = tile.rect.right
+
+        
+
+        if self.hitbox.top > screen_height:
+            self.hitbox.topleft = (100, 0)
             self.velocity_y = 0
-            return
+            self.state      = 'idle'
+            self.on_ground  = True
+        
+        if self.hitbox.x > screen_width:
+            self.hitbox.x= 0
+
+        self.rect.midbottom = self.hitbox.midbottom
 
 
-        self.rect.x += dx
-        self.rect.y += dy
+        if self.state != self.prev_state:
+            self.current_frame = 0
+            self.frame_counter = 0
+            self.prev_state = self.state
 
         self.animate()
 
+
     def animate(self):
         self.frame_counter += 1
-       
 
         if self.state == 'walk':
             if self.frame_counter >= 5:
                 self.current_frame = (self.current_frame + 1) % len(self.walk_images)
                 self.frame_counter = 0
             self.image = self.walk_images[self.current_frame]
+
         elif self.state == 'idle':
             if self.frame_counter >= 10:
                 self.current_frame = (self.current_frame + 1) % len(self.idle_images)
                 self.frame_counter = 0
             self.image = self.idle_images[self.current_frame]
+
         elif self.state == 'jump':
-            self.image = self.jump_images[0]
+            if self.frame_counter >=3:
+                self.frame_counter =0
+                self.current_frame=(self.current_frame + 1) % len(self.jump_images)
+            self.image = self.jump_images[self.current_frame]
+
+
+        elif self.state == 'attack':                                 
+            if self.frame_counter >= 3:
+                self.frame_counter = 0
+                self.current_frame += 1
+                if self.current_frame >= len(self.attack_images):
+                    self.state = 'idle'
+                    self.current_frame = 0
+            self.image = self.attack_images[self.current_frame]
+        
+        elif self.state in ('run', 'run_left'):
+            if self.frame_counter >= 3:
+                self.frame_counter = 0
+                self.current_frame = (self.current_frame + 1) % len(self.run_images)
+            self.image = self.run_images[self.current_frame]
 
         if self.direction == 'left':
             self.image = pygame.transform.flip(self.image, True, False)
-            
-       
+    
+
+    def draw_healthbar(self,surface):
+        bar_width = 100
+        bar_height= 8
+        bar_x=self.rect.x
+        bar_y=self.rect.y -20
+
+        health_ratio = self.current_health/self.max_health
+        pygame.draw.rect(surface,(255,0,0),(bar_x,bar_y,bar_width,bar_height))
+
+        pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
