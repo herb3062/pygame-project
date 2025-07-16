@@ -143,14 +143,13 @@ class Player(pygame.sprite.Sprite):
 
         
 
-        if self.hitbox.top > screen_height:
+        if self.hitbox.top > 1000: 
             self.hitbox.topleft = (100, 0)
             self.velocity_y = 0
             self.state      = 'idle'
             self.on_ground  = True
         
-        if self.hitbox.x > screen_width:
-            self.hitbox.x= 0
+        
 
         self.rect.midbottom = self.hitbox.midbottom
 
@@ -229,11 +228,11 @@ class Player(pygame.sprite.Sprite):
             self.image.set_alpha(255)
         # Reset alpha when not invincible    
 
-    def draw_healthbar(self,surface):
+    def draw_healthbar(self,surface, camera_scroll=0):
         bar_width = 100
         bar_height= 8
-        bar_x=self.rect.x
-        bar_y=self.rect.y -20
+        bar_x = self.rect.x - camera_scroll
+        bar_y = self.rect.y - 20
 
         health_ratio = self.current_health/self.max_health
         pygame.draw.rect(surface,(255,0,0),(bar_x,bar_y,bar_width,bar_height))
