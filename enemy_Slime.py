@@ -39,6 +39,14 @@ class Slime(pygame.sprite.Sprite):
         self.death_timer = 0
         self.respawn_delay = 300
 
+        self.gravity = 1
+        self.velocity_y = 0
+        self.on_ground = False
+
+
+        self.spawn_x = x
+        self.spawn_y = y
+
     def load_frames(self, sprite_sheet, frame_width, frame_height, num_frames):
         frames = []
         for i in range(num_frames):
@@ -48,14 +56,14 @@ class Slime(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player):
+    def update(self, player, tiles):
 
         if self.dead:
             self.death_timer += 1
             if self.death_timer >= self.respawn_delay:
                 self.dead = False
                 self.current_health = self.max_health
-                self.rect.x = self.left_bound  # Optional: reset position
+                self.rect.topleft = (self.spawn_x, self.spawn_y)
             self.image.set_alpha(0)
             return
         else:
@@ -83,13 +91,7 @@ class Slime(pygame.sprite.Sprite):
                 player.invincible = True
                 player.invincible_timer = 0
 
-                # Push the player back
-               # pushback_amount = 40
-                #if self.direction == 1:
-                 #   player.hitbox.x += pushback_amount
-                #else:
-                 #S   player.hitbox.x -= pushback_amount
-
+               
                 self.has_damaged = True
         else:
             self.has_damaged = False
@@ -123,6 +125,19 @@ class Slime(pygame.sprite.Sprite):
         # Update hitbox to match sprite position
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.bottom = self.rect.bottom
+
+
+        # Handle gravity and ground collision
+        self.velocity_y += self.gravity
+        self.hitbox.y += self.velocity_y
+        self.on_ground = False
+
+        for tile in tiles:
+            if self.hitbox.colliderect(tile.rect):
+                if self.velocity_y > 0:
+                    self.hitbox.bottom = tile.rect.top
+                    self.velocity_y = 0
+                    self.on_ground = True
 
     def draw_healthbar(self,surface):
         bar_width = 100

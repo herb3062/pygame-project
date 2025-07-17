@@ -29,10 +29,6 @@ class Player(pygame.sprite.Sprite):
             'fighter_run_0019.png','fighter_run_0020.png',
             'fighter_run_0021.png','fighter_run_0023.png',
             'fighter_run_0024.png',
-
-
-
-
         ])
         self.max_health=100
         self.current_health = 100
@@ -62,11 +58,9 @@ class Player(pygame.sprite.Sprite):
         self.rect  = self.image.get_rect(topleft=(x, y))
 
         # Shrink width and height so the feet rest exactly on the tiles
-        self.hitbox = self.rect.inflate(100, 60)  
+        self.hitbox = self.rect.inflate(-20, -10)  
         self.hitbox.bottom = self.rect.bottom      
 
-
-        
 
     def load_images(self, file_list, base_path="assets/character_animations/"):
     # """Load → crop transparent padding under feet → return Surfaces."""
@@ -115,12 +109,8 @@ class Player(pygame.sprite.Sprite):
               else: 
                   self.state = 'run_left'
                   dx = -self.run_speed
-            
 
-        
-            
-
-       
+        ## Gravity and vertical movement
         self.velocity_y += self.gravity
         self.hitbox.y   += self.velocity_y                             
         self.on_ground   = False
