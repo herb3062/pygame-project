@@ -25,12 +25,12 @@ camera_scroll = 0
 level_length = 10000
 
 # Tile setup
-brick_tile_image = "assets/tiles and stuff/brick_building.png"
+brick_tile_image = "assets/tiles and stuff/building_tileset.png"
 tiles = [
-    Tile(0, 500, 400, 300, color=(75, 0, 130)),
-    Tile(500, 230, 400, 600, color=(75, 0, 130)),
-    Tile(800, 400, 400, 600, color=(75, 0, 130)),
-    Tile(1400, 500, 400, 600, color=(75, 0, 130)),
+    Tile(0, 500, 400, 300, image_path=brick_tile_image),
+    Tile(500, 230, 400, 600, image_path=brick_tile_image),
+    Tile(800, 400, 400, 600, image_path=brick_tile_image),
+    Tile(1400, 500, 400, 600, image_path=brick_tile_image),
 ]
 
 # Player setup
