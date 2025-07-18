@@ -51,6 +51,12 @@ class Player(pygame.sprite.Sprite):
 
         self.current_frame = 0
         self.frame_counter = 0
+
+        self.respawn_x = x
+        self.respawn_y = y
+
+        self.checkpoint_x = x
+        self.checkpoint_y = y
         
        
 
@@ -139,8 +145,6 @@ class Player(pygame.sprite.Sprite):
             self.state      = 'idle'
             self.on_ground  = True
         
-        
-
         self.rect.midbottom = self.hitbox.midbottom
 
 
@@ -228,3 +232,17 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(surface,(255,0,0),(bar_x,bar_y,bar_width,bar_height))
 
         pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
+
+
+    # Reset player position and state
+    def reset(self):
+        self.rect.topleft = (self.respawn_x, self.respawn_y)
+        self.hitbox.midbottom = self.rect.midbottom
+        self.current_health = self.max_health
+        self.velocity_y = 0
+        self.invincible = False
+        self.invincible_timer = 0
+
+    def set_checkpoint(self, x, y):
+        self.respawn_x = x
+        self.respawn_y = y
