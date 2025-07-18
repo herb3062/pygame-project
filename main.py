@@ -3,7 +3,7 @@ import sys
 
 from tile import Tile
 from main_character import Player
-from enemy_Slime import Slime
+from enemy_slime import Slime
 
 pygame.init()
 
@@ -38,19 +38,12 @@ player = Player(100, 500)
 all_sprites = pygame.sprite.Group(player)
 
 # Enemy setup
-slime_sheet = pygame.image.load("assets/character_animations/enemy_slime/slime_sheet.png").convert_alpha()
-slime = Slime(
-    x=150,
-    y=375,
-    sprite_sheet=slime_sheet,
-    frame_width=128,
-    frame_height=128,
-    num_frames=8,
-    left_bound=150,
-    right_bound=450,
-    speed=2
-)
-slimes = pygame.sprite.Group(slime)
+from enemy_slime import create_slimes
+from enemy_slime_2 import create_slime2
+slime1 = create_slimes()
+slime2 = create_slime2()
+
+slimes = pygame.sprite.Group(slime1, slime2)
 
 # Game loop
 running = True
