@@ -10,15 +10,11 @@ class Slime(pygame.sprite.Sprite):
         self.frames = self.load_frames(sprite_sheet, frame_width, frame_height, num_frames)
         self.walk_frames = self.frames
 
-        #load jump sprite sheet
-        jump_sheet = pygame.image.load("assets/character_animations/enemy_slime/slime_jump.png").convert_alpha()
-        self.jump_frames = self.load_frames(jump_sheet, 128, 128, 5)
-
         # Load attack sprite sheet
         attack_sheet = pygame.image.load("assets/character_animations/enemy_slime/slime_attack_1.png").convert_alpha()
         self.attack_frames = self.load_frames(attack_sheet, 128, 128, 5)
 
-        # Initialize animation state
+
         self.frame_index = 0
         self.frame_counter = 0
         self.image = self.frames[self.frame_index]
@@ -27,39 +23,21 @@ class Slime(pygame.sprite.Sprite):
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.bottom = self.rect.bottom  # align it to the bottom of the slime
         
-        # Movement bounds and speed
         self.left_bound = left_bound
         self.right_bound = right_bound
         self.speed = speed
         self.direction = 1  # 1 = right, -1 = left
 
-        # Attack state
         self.attacking = False  # Track attack state
 
-        # Damage state
         self.has_damaged = False
 
-        #jump related
-        self.jump_timer = 0
-        self.jump_cooldown = 80
-        self.jumping = False
 
-        # Health and death
         self.max_health = 30
         self.current_health = self.max_health
         self.dead = False
         self.death_timer = 0
         self.respawn_delay = 300
-
-        # Gravity and movement
-        self.gravity = 1
-        self.velocity_y = -12
-        self.horizontal_velocity = 0
-        self.on_ground = False
-
-        # Spawn position for respawn
-        self.spawn_x = x
-        self.spawn_y = y
 
     def load_frames(self, sprite_sheet, frame_width, frame_height, num_frames):
         frames = []
@@ -70,103 +48,86 @@ class Slime(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles):
-        # Death and respawn
+    def update(self, player):
+
         if self.dead:
             self.death_timer += 1
             if self.death_timer >= self.respawn_delay:
                 self.dead = False
                 self.current_health = self.max_health
-                self.hitbox.topleft = (self.spawn_x, self.spawn_y)
-                self.velocity_y = 0
+                self.rect.x = self.left_bound  # Optional: reset position
             self.image.set_alpha(0)
             return
         else:
             self.image.set_alpha(255)
 
-        # Player stomp damage
-        if (
-            player.velocity_y > 0
-            and player.hitbox.bottom <= self.hitbox.top + 20
-            and self.hitbox.colliderect(player.hitbox)
-        ):
-            self.current_health -= 15
-            player.velocity_y = -30
+        # Check if player hits Slime from above
+        if player.velocity_y > 0 and player.hitbox.bottom <= self.hitbox.top + 20 and self.hitbox.colliderect(player.hitbox):
+            self.current_health -= player.damage
+            player.velocity_y = -10  # trampoline slime hehe
             if self.current_health <= 0:
                 self.dead = True
                 self.death_timer = 0
-
-        # Player damage
-        self.attacking = self.hitbox.colliderect(player.rect)
-        if self.attacking:
-            if not self.has_damaged and not player.invincible:
-                player.current_health -= 10
-                player.invincible = True
-                player.invincible_timer = 0
+        
+        elif (player.state == 'attack' or player.state == 'sword_attack') and self.hitbox.colliderect(player.hitbox):
+            if not self.has_damaged:
+                if player.state == 'attack' and player.attack_timer == 0:
+                    self.current_health -= int(player.damage * 0.5)
+                    player.attack_timer = player.attack_cooldown
+                elif player.state == 'sword_attack':
+                    self.current_health -= int(player.weapon_damage * 0.8)
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.death_timer = 0
                 self.has_damaged = True
         else:
             self.has_damaged = False
 
-        # Hop if on ground
-        self.jump_timer += 1
-        if self.jump_timer >= self.jump_cooldown and self.on_ground:
-            self.velocity_y = -15  # Jump height
-            self.jumping = True 
-            self.horizontal_velocity = self.speed * self.direction  # Start horizontal move
-            self.jump_timer = 0
+
+
+
+        # Detect collision with player's rect using hitbox
+        self.attacking = self.hitbox.colliderect(player.rect)
+        if self.attacking and not (player.velocity_y > 0 and player.hitbox.bottom <= self.hitbox.top + 20):
+            # Only deal damage if the player is not invincible
+            if not self.has_damaged and not player.invincible:
+                player.current_health -= 10
+
+                # Start invincibility
+                player.invincible = True
+                player.invincible_timer = 0
+
+                self.has_damaged = True
         else:
-            self.horizontal_velocity = 0
+            self.has_damaged = False
 
-        # Gravity
-        self.velocity_y += self.gravity
-        self.hitbox.y += self.velocity_y
-        self.hitbox.x += self.horizontal_velocity
-        self.on_ground = False
+        # Move only if not attacking
+        if not self.attacking:
+            self.rect.x += self.speed * self.direction
+            if self.rect.right >= self.right_bound or self.rect.left <= self.left_bound:
+                self.direction *= -1
 
-        if self.jumping:
-            self.hitbox.x += self.speed * self.direction
+        # Choose animation frames
+        current_frames = self.attack_frames if self.attacking else self.frames
 
-        # Collision with tiles
-        for tile in tiles:
-            if self.hitbox.colliderect(tile.rect):
-                if self.velocity_y > 0:
-                    self.hitbox.bottom = tile.rect.top
-                    self.velocity_y = 0
-                    self.on_ground = True
-
-        # Turn around at bounds
-        if self.hitbox.left <= self.left_bound or self.hitbox.right >= self.right_bound:
-            self.direction *= -1
-
-        # Sync visual sprite with hitbox
-        self.rect.midbottom = self.hitbox.midbottom
-
-        # Animation state
-        if self.attacking:
-            current_frames = self.attack_frames
-        elif not self.on_ground:
-            current_frames = self.jump_frames
-        else:
-            current_frames = self.walk_frames
-        
-        if self.velocity_y == 0 and self.on_ground:
-            self.jumping = False
-
-        # Animate
+        # Clamp frame index if switching between animations with different lengths
         if self.frame_index >= len(current_frames):
             self.frame_index = 0
+
+        # Animate
         self.frame_counter += 1
         if self.frame_counter >= 8:
             self.frame_counter = 0
             self.frame_index = (self.frame_index + 1) % len(current_frames)
+        self.image = current_frames[self.frame_index]
 
-        # Flip image
-        frame_image = current_frames[self.frame_index]
+        # Flip image based on direction
         if self.direction == -1:
-            frame_image = pygame.transform.flip(frame_image, True, False)
-        self.image = frame_image
+            self.image = pygame.transform.flip(current_frames[self.frame_index], True, False)
+        else:
+            self.image = current_frames[self.frame_index]
 
-        # Sync hitbox again
+        # Update hitbox to match sprite position
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.bottom = self.rect.bottom
 
