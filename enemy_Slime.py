@@ -169,3 +169,34 @@ class Slime(pygame.sprite.Sprite):
         # Sync hitbox again
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.bottom = self.rect.bottom
+
+
+
+def create_slimes():
+        slime_sheet = pygame.image.load("assets/character_animations/enemy_slime/slime_sheet.png").convert_alpha()
+        slime = Slime(
+            x=250,
+            y=375,
+            sprite_sheet=slime_sheet,
+            frame_width=128,
+            frame_height=128,
+            num_frames=8,
+            left_bound=200,
+            right_bound=400,
+            speed=2
+        )
+        return pygame.sprite.Group(slime)
+
+def create_blueslime_at(x, y, left_bound, right_bound,):
+    sprite_sheet = pygame.image.load("assets/character_animations/enemy_slime/slime_sheet.png").convert_alpha()
+    return Slime(
+        x=x,
+        y=y,
+        sprite_sheet=sprite_sheet,
+        frame_width=128,
+        frame_height=128,
+        num_frames=8,
+        left_bound=left_bound,
+        right_bound=right_bound,
+        speed=2,
+    )
