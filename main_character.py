@@ -1,4 +1,5 @@
-import pygame
+import pygame 
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -18,24 +19,45 @@ class Player(pygame.sprite.Sprite):
             'fighter_jump_0045.png', 'fighter_jump_0046.png'
         ])
 
-        self.current_frame = 0
-        self.frame_counter = 0
-        self.image = self.idle_images[0]
-        
-        self.rect = pygame.Rect(x, y, 100, 130) 
+        self.attack_images = self.load_images([  
+            'fighter_combo_0070.png','fighter_combo_0071.png','fighter_combo_0072.png',
+            'fighter_combo_0074.png','fighter_combo_0075.png','fighter_combo_0076.png',
+            'fighter_combo_0077.png','fighter_combo_0078.png','fighter_combo_0080.png'
+        ])
+
 
         self.run_images= self.load_images([
             'fighter_run_0017.png','fighter_run_0018.png',
             'fighter_run_0019.png','fighter_run_0020.png',
             'fighter_run_0021.png','fighter_run_0023.png',
             'fighter_run_0024.png',
+
+
+
+
         ])
+        self.sword_images= self.load_images([
+            'sword_combo_0068.png','sword_combo_0069.png'
+
+
+
+
+        ])
+
+        self.current_frame = 0
+        self.frame_counter = 0
+        self.image = self.idle_images[0]
+        
+        self.rect = pygame.Rect(x, y, 100, 130) 
+
+
         self.max_health=100
         self.current_health = 100
 
         self.speed = 3
         self.run_speed=5
         self.damage= 5
+        self.weapon_damage = 10
         self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
@@ -51,21 +73,17 @@ class Player(pygame.sprite.Sprite):
 
         self.current_frame = 0
         self.frame_counter = 0
-
-        self.respawn_x = x
-        self.respawn_y = y
-
-        self.checkpoint_x = x
-        self.checkpoint_y = y
         
-       
+        self.attack_cooldown = 30  # frames
+        self.attack_timer = 0
 
         self.image = self.idle_images[0]
         self.rect  = self.image.get_rect(topleft=(x, y))
 
         # Shrink width and height so the feet rest exactly on the tiles
-        self.hitbox = self.rect.inflate(-20, -10)  
+        self.hitbox = self.rect.inflate(100, 60)  
         self.hitbox.bottom = self.rect.bottom      
+
 
 
     def load_images(self, file_list, base_path="assets/character_animations/"):
@@ -106,6 +124,10 @@ class Player(pygame.sprite.Sprite):
 
             if keys[pygame.K_e]:                 
                 self.state        = 'attack'
+
+            if keys[pygame.K_w] and self.attack_timer == 0:                 
+                self.state = 'sword_attack'
+                self.attack_timer = self.attack_cooldown
                 
             
             if keys[pygame.K_q] and dx != 0:
@@ -115,8 +137,12 @@ class Player(pygame.sprite.Sprite):
               else: 
                   self.state = 'run_left'
                   dx = -self.run_speed
+            
 
-        ## Gravity and vertical movement
+        
+            
+
+       
         self.velocity_y += self.gravity
         self.hitbox.y   += self.velocity_y                             
         self.on_ground   = False
@@ -126,7 +152,7 @@ class Player(pygame.sprite.Sprite):
                     self.hitbox.bottom = tile.rect.top
                     self.velocity_y    = 0
                     self.on_ground     = True
-                    if self.state not in ('attack', 'walk', 'run', 'run_left'):
+                    if self.state not in ('sword_attack','attack', 'walk', 'run', 'run_left'):
                         self.state = 'idle'
 
         self.hitbox.x += dx                                            
@@ -139,12 +165,15 @@ class Player(pygame.sprite.Sprite):
 
         
 
-        if self.hitbox.top > 1000: 
+        if self.hitbox.top > screen_height:
             self.hitbox.topleft = (100, 0)
             self.velocity_y = 0
             self.state      = 'idle'
             self.on_ground  = True
         
+        if self.hitbox.x > screen_width:
+            self.hitbox.x= 0
+
         self.rect.midbottom = self.hitbox.midbottom
 
 
@@ -168,6 +197,9 @@ class Player(pygame.sprite.Sprite):
             if self.invincible_timer >= self.invincible_duration:
                 self.invincible = False
                 self.invincible_timer = 0
+
+        if self.attack_timer > 0:
+            self.attack_timer -= 1
 
         self.animate()
 
@@ -202,6 +234,12 @@ class Player(pygame.sprite.Sprite):
                     self.state = 'idle'
                     self.current_frame = 0
             self.image = self.attack_images[self.current_frame]
+        elif self.state == 'sword_attack':
+            if self.frame_counter >=3:
+                self.frame_counter = 0
+                self.current_frame=(self.current_frame+1)% len(self.sword_images)
+            self.image=self.sword_images[self.current_frame]
+            
         
         elif self.state in ('run', 'run_left'):
             if self.frame_counter >= 3:
@@ -222,27 +260,13 @@ class Player(pygame.sprite.Sprite):
             self.image.set_alpha(255)
         # Reset alpha when not invincible    
 
-    def draw_healthbar(self,surface, camera_scroll=0):
+    def draw_healthbar(self,surface):
         bar_width = 100
         bar_height= 8
-        bar_x = self.rect.x - camera_scroll
-        bar_y = self.rect.y - 20
+        bar_x=self.rect.x
+        bar_y=self.rect.y -20
 
         health_ratio = self.current_health/self.max_health
         pygame.draw.rect(surface,(255,0,0),(bar_x,bar_y,bar_width,bar_height))
 
         pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
-
-
-    # Reset player position and state
-    def reset(self):
-        self.rect.topleft = (self.respawn_x, self.respawn_y)
-        self.hitbox.midbottom = self.rect.midbottom
-        self.current_health = self.max_health
-        self.velocity_y = 0
-        self.invincible = False
-        self.invincible_timer = 0
-
-    def set_checkpoint(self, x, y):
-        self.respawn_x = x
-        self.respawn_y = y
