@@ -93,6 +93,7 @@ while running:
     for slime in slimes:
         slime.update(player, tiles)
         screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
+        slime.draw_healthbar(screen, camera_scroll)
         #pygame.draw.rect(screen, (0, 255, 0), slime.hitbox.move(-camera_scroll, 0), 2)  # Green = hitbox
         #pygame.draw.rect(screen, (255, 0, 0), slime.rect.move(-camera_scroll, 0), 2)    # Red = image
 
