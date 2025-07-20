@@ -48,14 +48,21 @@ tiles = [
 player = Player(100, 500)
 all_sprites = pygame.sprite.Group(player)
 
+#checkpoint logic
+last_checkpoint_tile = None
+checkpoint_tiles = [tiles[2], tiles[5]]
+
 # Enemy setup
 from enemy_slime import create_slimes
 from enemy_slime_2 import create_slime2
+from enemy_slime import create_blueslime_at
+from enemy_slime_2 import create_redslime_at
 slime1 = create_slimes()
 slime2 = create_slime2()
-slime3 = create_blueslime_at(x=1250, y=500, left_bound=1200, right_bound=1575,)
+slime3 = create_blueslime_at(x=1250, y=500, left_bound=1200, right_bound=1590,)
+slime4 = create_redslime_at(x=2350, y=300, left_bound=2300, right_bound=2700,)
 
-slimes = pygame.sprite.Group(slime1, slime2, slime3)
+slimes = pygame.sprite.Group(slime1, slime2, slime3, slime4)
 # Game loop
 running = True
 while running:
@@ -68,11 +75,11 @@ while running:
     keys = pygame.key.get_pressed()
     player.update(keys, WIDTH, HEIGHT, tiles)
 
-# Checkpoint logic (third tile = tiles[2])
-    checkpoint_tile = tiles[2]
-    if player.rect.colliderect(checkpoint_tile.rect):
-        player.set_checkpoint(checkpoint_tile.rect.x + 50, checkpoint_tile.rect.y - player.rect.height)
-    
+    for tile in checkpoint_tiles:
+        if player.rect.colliderect(tile.rect) and tile != last_checkpoint_tile:
+            player.set_checkpoint(tile.rect.x + 50, tile.rect.y - player.rect.height)
+            last_checkpoint_tile = tile
+
     # Camera update
     camera_scroll = player.rect.centerx - WIDTH // 2
     camera_scroll = max(0, min(camera_scroll, level_length - WIDTH))
@@ -85,9 +92,17 @@ while running:
     
     # Draw tiles
     for tile in tiles:
-        tile.draw(screen, camera_scroll)
-        pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)  # Red box for tile
-        pygame.draw.rect(screen, (0, 255, 0), player.hitbox.move(-camera_scroll, 0), 2)  # Green box for player hitbox
+            tile.draw(screen, camera_scroll)
+
+            # Draw checkpoint marker if it's a checkpoint tile
+            if tile in checkpoint_tiles:
+                marker_x = tile.rect.centerx - camera_scroll
+                marker_y = tile.rect.top - 20
+                pygame.draw.circle(screen, (255, 255, 0), (marker_x, marker_y), 10)
+
+            # Debug visuals
+            pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)  # Red box for tile
+            pygame.draw.rect(screen, (0, 255, 0), player.hitbox.move(-camera_scroll, 0), 2)  # Green box for player hitbox
 
     # Update and draw slimes
     for slime in slimes:

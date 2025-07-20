@@ -121,7 +121,7 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_e]:                 
                 self.state = 'attack'
             
-            if keys[pygame.K_w] and self.attack_timer == 0:
+            if keys[pygame.K_s] and self.attack_timer == 0:
                 self.state = 'sword_attack'
                 self.attack_timer = self.attack_cooldown
                 

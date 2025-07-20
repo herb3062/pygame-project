@@ -27,3 +27,11 @@ def create_slime2():
         right_bound=1200,
         speed=2
     )
+def create_redslime_at(x, y, left_bound, right_bound, speed=2):
+    return Slime2(
+        x=x,
+        y=y,
+        left_bound=left_bound,
+        right_bound=right_bound,
+        speed=speed
+    )
