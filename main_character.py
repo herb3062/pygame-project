@@ -98,41 +98,44 @@ class Player(pygame.sprite.Sprite):
     def update(self, keys,screen_width, screen_height, tiles):
         dx=0
 
-        if self.state != 'attack':   
+        if self.state != 'attack':
+            dx = 0  # horizontal movement
 
-                                            
+            # Directional movement
             if keys[pygame.K_LEFT]:
                 dx = -self.speed
                 self.direction = 'left'
-                self.state     = 'walk'
+                self.state = 'walk'
             elif keys[pygame.K_RIGHT]:
                 dx = self.speed
                 self.direction = 'right'
-                self.state     = 'walk'
+                self.state = 'walk'
             else:
                 if self.on_ground:
                     self.state = 'idle'
 
-            if keys[pygame.K_SPACE] and self.on_ground:
-                self.velocity_y = -self.jump_power
-                self.on_ground  = False
-                self.state      = 'jump'
+            # RUN
+            if keys[pygame.K_SPACE]:
+                if self.direction == 'right':
+                    dx = self.run_speed
+                    self.state = 'run'
+                elif self.direction == 'left':
+                    dx = -self.run_speed
+                    self.state = 'run'
 
-            if keys[pygame.K_e]:                 
+            # JUMP
+            if keys[pygame.K_UP] and self.on_ground:
+                self.velocity_y = -self.jump_power
+                self.on_ground = False
+                self.state = 'jump'
+
+            # ATTACK
+            if keys[pygame.K_e]:
                 self.state = 'attack'
-            
+
             if keys[pygame.K_s] and self.attack_timer == 0:
                 self.state = 'sword_attack'
                 self.attack_timer = self.attack_cooldown
-                
-            
-            if keys[pygame.K_q] and dx != 0:
-              if self.direction == 'right':
-                  self.state = 'run'
-                  dx =  self.run_speed
-              else: 
-                  self.state = 'run_left'
-                  dx = -self.run_speed
 
         ## Gravity and vertical movement
         self.velocity_y += self.gravity

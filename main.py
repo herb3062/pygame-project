@@ -4,7 +4,8 @@ import sys
 from tile import Tile
 from main_character import Player
 from enemy_slime import Slime
-from enemy_slime import create_blueslime_at
+
+from tile import get_tile_data
 
 pygame.init()
 
@@ -25,27 +26,12 @@ background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 camera_scroll = 0
 level_length = 10000
 
-# Tile setup
-brick_tile_image = "assets/tiles and stuff/building_tileset.png"
-building_tileset_2 = "assets/tiles and stuff/building_tileset_2.png"
-small_platoform = "assets/tiles and stuff/small_platform.png"
-tiles = [
-    Tile(0, 500, 400, 300, image_path=brick_tile_image),
 
-    Tile(500, 230, 400, 600, image_path=brick_tile_image),
-    Tile(800, 400, 400, 600, image_path=brick_tile_image),
-    Tile(1200, 500, 400, 600, image_path=brick_tile_image),
+tiles = get_tile_data()
 
-    Tile(1700, 250, 75, 90, image_path=small_platoform), #small platform
-
-    Tile(1800, 150, 400, 600, image_path=brick_tile_image),
-    Tile(2300, 500, 400, 600, image_path=brick_tile_image),
-    Tile(2800, 400, 400, 600, image_path=brick_tile_image),
-    Tile(3300, 500, 400, 600, image_path=brick_tile_image),
-]
 
 # Player setup
-player = Player(100, 500)
+player = Player(3300, 500)
 all_sprites = pygame.sprite.Group(player)
 
 #checkpoint logic
@@ -57,12 +43,15 @@ from enemy_slime import create_slimes
 from enemy_slime_2 import create_slime2
 from enemy_slime import create_blueslime_at
 from enemy_slime_2 import create_redslime_at
+from slime_boss import create_slime_boss
 slime1 = create_slimes()
 slime2 = create_slime2()
 slime3 = create_blueslime_at(x=1250, y=500, left_bound=1200, right_bound=1590,)
 slime4 = create_redslime_at(x=2350, y=300, left_bound=2300, right_bound=2700,)
+slime5 = create_blueslime_at(x=2800, y=400, left_bound=2700, right_bound=3200,)
+slime_boss = create_slime_boss()
 
-slimes = pygame.sprite.Group(slime1, slime2, slime3, slime4)
+slimes = pygame.sprite.Group(slime1, slime2, slime3, slime4, slime5, slime_boss)
 # Game loop
 running = True
 while running:
