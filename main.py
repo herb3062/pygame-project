@@ -31,7 +31,7 @@ tiles = get_tile_data()
 
 
 # Player setup
-player = Player(3300, 500)
+player = Player(100, 500)
 all_sprites = pygame.sprite.Group(player)
 
 #checkpoint logic
