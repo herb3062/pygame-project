@@ -22,7 +22,6 @@ class Player(pygame.sprite.Sprite):
         self.frame_counter = 0
         self.image = self.idle_images[0]
         
-        self.rect = pygame.Rect(x, y, 100, 130) 
 
         self.run_images= self.load_images([
             'fighter_run_0017.png','fighter_run_0018.png',
@@ -46,8 +45,8 @@ class Player(pygame.sprite.Sprite):
 
         self.speed = 3
         self.run_speed=5
-        self.damage= 5
-        self.weapon_damage = 10
+        self.damage= 10
+        self.weapon_damage = 20
         self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
@@ -75,6 +74,7 @@ class Player(pygame.sprite.Sprite):
        
 
         self.image = self.idle_images[0]
+        # Set the initial rect and hitbox
         self.rect  = self.image.get_rect(topleft=(x, y))
 
         # Shrink width and height so the feet rest exactly on the tiles
@@ -141,12 +141,18 @@ class Player(pygame.sprite.Sprite):
         self.velocity_y += self.gravity
         self.hitbox.y   += self.velocity_y                             
         self.on_ground   = False
+
+
+        # Check for collisions with tiles
         for tile in tiles:
-            if self.hitbox.colliderect(tile.rect):                    
-                if self.velocity_y > 0:                              
+            if self.hitbox.colliderect(tile.rect):
+                if self.velocity_y > 0:
                     self.hitbox.bottom = tile.rect.top
-                    self.velocity_y    = 0
-                    self.on_ground     = True
+                    self.velocity_y = 0
+                    self.on_ground = True
+                elif self.velocity_y < 0:
+                    self.hitbox.top = tile.rect.bottom
+                    self.velocity_y = 0
                     if self.state not in ('attack', 'walk', 'run', 'run_left'):
                         self.state = 'idle'
 

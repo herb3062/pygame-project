@@ -1,7 +1,7 @@
 import pygame
 
 class Tile:
-    def __init__(self, x, y, width, height, image_path=None, image_surface=None, color=(0, 0, 0), collide_height=80):
+    def __init__(self, x, y, width, height, image_path=None, image_surface=None, color=(0, 0, 0), collide_height=80, is_gate=False, gate_target_y=None, gate_speed=1):
         self.image_rect = pygame.Rect(x, y, width, height)
         if image_surface:
             # Special case for flipped tile: move rect to bottom
@@ -19,6 +19,12 @@ class Tile:
 
         self.color = color
 
+        # Gate logic
+        self.is_gate = is_gate
+        self.gate_target_y = gate_target_y
+        self.gate_speed = gate_speed
+        self.gate_opening = False  # Flag to start moving gate
+
     def draw(self, screen, camera_scroll=0):
         if self.image:
             screen.blit(self.image, (self.image_rect.x - camera_scroll, self.image_rect.y))
@@ -28,12 +34,23 @@ class Tile:
                 self.image_rect.width, self.image_rect.height))
         # DEBUG: Draw red collision box
         #pygame.draw.rect(screen, (255, 0, 0), self.rect, 2) 
+    def update_gate(self):
+        if self.is_gate and self.gate_opening:
+            if self.image_rect.y > self.gate_target_y:
+                self.image_rect.y -= self.gate_speed
+                self.rect.y -= self.gate_speed
+                if self.image_rect.y < self.gate_target_y:
+                    # Snap into position
+                    diff = self.image_rect.y - self.gate_target_y
+                    self.image_rect.y = self.gate_target_y
+                    self.rect.y -= diff
 
 TILE_IMAGE_PATHS = {
     "brick": "assets/tiles and stuff/building_tileset.png",
     "building2": "assets/tiles and stuff/building_tileset_2.png",
     "small_platform": "assets/tiles and stuff/small_platform.png",
     "dirt": "assets/tiles and stuff/dirt_tile.png",
+    "tunnel": "assets/tiles and stuff/tunnel_entrance.png",
     }
 
 def load_and_scale(image_path, width, height):
@@ -55,9 +72,19 @@ def get_tile_data():
         tiles.append(Tile(2300, 500, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
         tiles.append(Tile(2800, 400, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
 
-        tiles.append(Tile(3300, 500, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
+        tiles.append(Tile(3300, 500, 500, 600, image_path=TILE_IMAGE_PATHS["brick"]))
 
+        
         tiles.append(Tile(3800, 500, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
+        #gate tile
+        tiles.append(Tile(
+            4225, 300, 80, 100,
+            image_path=TILE_IMAGE_PATHS["tunnel"],
+            is_gate=True,
+            gate_target_y=100,   # Slide up to y = 100
+            gate_speed=1         # Adjust speed as needed
+        ))
+
         tiles.append(Tile(4200, 400, 700, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
 
         # flipped dirt tile above
@@ -73,4 +100,6 @@ def get_tile_data():
         another_flipped_tile = Tile(4200, -300, 800, 600, image_surface=flipped_image2)
         tiles.append(another_flipped_tile)
 
+       
         return tiles
+

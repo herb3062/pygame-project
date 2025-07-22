@@ -31,12 +31,12 @@ tiles = get_tile_data()
 
 
 # Player setup
-player = Player(100, 500)
+player = Player(3300, 500)
 all_sprites = pygame.sprite.Group(player)
 
 #checkpoint logic
 last_checkpoint_tile = None
-checkpoint_tiles = [tiles[2], tiles[5]]
+checkpoint_tiles = [tiles[2], tiles[5], tiles[8]]
 
 # Enemy setup
 from enemy_slime import create_slimes
@@ -48,8 +48,9 @@ slime1 = create_slimes()
 slime2 = create_slime2()
 slime3 = create_blueslime_at(x=1250, y=500, left_bound=1200, right_bound=1590,)
 slime4 = create_redslime_at(x=2350, y=300, left_bound=2300, right_bound=2700,)
-slime5 = create_blueslime_at(x=2800, y=400, left_bound=2700, right_bound=3200,)
+slime5 = create_blueslime_at(x=2850, y=400, left_bound=2800, right_bound=3200,)
 slime_boss = create_slime_boss()
+gate_tile = tiles[10]  #assuming the gate tile is at index 10
 
 slimes = pygame.sprite.Group(slime1, slime2, slime3, slime4, slime5, slime_boss)
 # Game loop
@@ -81,6 +82,7 @@ while running:
     
     # Draw tiles
     for tile in tiles:
+            tile.update_gate()
             tile.draw(screen, camera_scroll)
 
             # Draw checkpoint marker if it's a checkpoint tile
@@ -92,6 +94,9 @@ while running:
             # Debug visuals
             pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)  # Red box for tile
             pygame.draw.rect(screen, (0, 255, 0), player.hitbox.move(-camera_scroll, 0), 2)  # Green box for player hitbox
+
+            if slime_boss.dead:
+                gate_tile.gate_opening = True
 
     # Update and draw slimes
     for slime in slimes:
