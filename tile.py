@@ -72,33 +72,42 @@ def get_tile_data():
         tiles.append(Tile(2300, 500, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
         tiles.append(Tile(2800, 400, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
 
-        tiles.append(Tile(3300, 500, 500, 600, image_path=TILE_IMAGE_PATHS["brick"]))
+        tiles.append(Tile(3300, 500, 600, 600, image_path=TILE_IMAGE_PATHS["brick"]))
 
         
-        tiles.append(Tile(3800, 500, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
+        tiles.append(Tile(3900, 500, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
         #gate tile
         tiles.append(Tile(
-            4225, 300, 80, 100,
+            4325, 300, 80, 100,
             image_path=TILE_IMAGE_PATHS["tunnel"],
             is_gate=True,
             gate_target_y=100,   # Slide up to y = 100
             gate_speed=1         # Adjust speed as needed
         ))
 
-        tiles.append(Tile(4200, 400, 700, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
+        tiles.append(Tile(4300, 400, 700, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
+        tiles.append(Tile(4900, 400, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
+
+        flipped_image3 = load_and_scale(TILE_IMAGE_PATHS["dirt"], 700, 600)
 
         # flipped dirt tile above
         flipped_image = load_and_scale(TILE_IMAGE_PATHS["dirt"], 800, 600)
         flipped_image = pygame.transform.flip(flipped_image, False, True)
         # Create a new flipped tile and append it
-        flipped_tile = Tile(3800, -500, 800, 600, image_surface=flipped_image)
+        flipped_tile = Tile(3900, -500, 800, 600, image_surface=flipped_image)
         tiles.append(flipped_tile)
 
         flipped_image2 = load_and_scale(TILE_IMAGE_PATHS["dirt"], 700, 600)
         flipped_image2 = pygame.transform.flip(flipped_image2, False, True)
         # Create a new flipped tile and append it
-        another_flipped_tile = Tile(4200, -300, 800, 600, image_surface=flipped_image2)
+        another_flipped_tile = Tile(4300, -300, 800, 600, image_surface=flipped_image2)
         tiles.append(another_flipped_tile)
+
+        flipped_image3 = load_and_scale(TILE_IMAGE_PATHS["dirt"], 800, 600)
+        flipped_image3 = pygame.transform.flip(flipped_image3, False, True)
+        # Create a new flipped tile and append it
+        another_flipped_tile2 = Tile(4900, -300, 800, 600, image_surface=flipped_image3)
+        tiles.append(another_flipped_tile2)
 
        
         return tiles

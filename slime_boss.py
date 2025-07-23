@@ -101,8 +101,7 @@ class slime_boss(Slime):
                     self.on_ground = True
 
         # Turn around at bounds
-        if self.hitbox.left <= self.left_bound or self.hitbox.right >= self.right_bound:
-            self.direction *= -1
+        self.turn_if_at_bounds()
 
         # Animation
         if self.attacking:
@@ -130,6 +129,15 @@ class slime_boss(Slime):
         self.rect.midbottom = self.hitbox.midbottom
         self.hitbox.centerx = self.rect.centerx
         self.hitbox.bottom = self.rect.bottom
+
+
+    def turn_if_at_bounds(self):
+        buffer = 20  # Boss reacts slower
+        if self.on_ground:
+            if self.direction == -1 and self.hitbox.left <= self.left_bound + buffer:
+                self.direction = 1
+            elif self.direction == 1 and self.hitbox.right >= self.right_bound - buffer:
+                self.direction = -1
 def create_slime_boss():
     return slime_boss(
             x=3800,
@@ -138,3 +146,4 @@ def create_slime_boss():
             right_bound=4200,
             speed=3
         )
+

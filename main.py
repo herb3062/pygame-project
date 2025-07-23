@@ -1,63 +1,47 @@
 import pygame
 import sys
 
-from tile import Tile
-from main_character import Player
-from enemy_slime import Slime
-
-from tile import get_tile_data
-
+from level1 import setup_level1
+# --- Initialization ---
 pygame.init()
 
-# Display setup
 WIDTH, HEIGHT = 900, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pygame Demo")
-
-# Clock and FPS
+pygame.display.set_caption("Pygame Game")
 clock = pygame.time.Clock()
 FPS = 60
 
-# Background
-background = pygame.image.load("assets/background/city_1/10.png").convert_alpha()
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+# --- Load Assets ---
 
-# Camera and level settings
-camera_scroll = 0
 level_length = 10000
+camera_scroll = 0
 
+city_bg = pygame.image.load("assets/background/city_1/10.png").convert_alpha()
+city_bg = pygame.transform.scale(city_bg, (WIDTH, HEIGHT))
 
-tiles = get_tile_data()
+tunnel_bg = pygame.image.load("assets/background/tunnel_tile.png").convert_alpha()
+tunnel_bg = pygame.transform.scale(tunnel_bg, (1350, 700))
 
+forest_bg = pygame.image.load("assets/background/forest_background.png").convert_alpha()
+forest_bg = pygame.transform.scale(forest_bg, (WIDTH, HEIGHT))
 
-# Player setup
-player = Player(3300, 500)
-all_sprites = pygame.sprite.Group(player)
+# --- Load Level 1 ---
+level_data = setup_level1()
+tiles             = level_data["tiles"]
+player            = level_data["player"]
+all_sprites       = level_data["all_sprites"]
+checkpoint_tiles  = level_data["checkpoint_tiles"]
+last_checkpoint   = level_data["last_checkpoint_tile"]
+slimes            = level_data["slimes"]
+slime_boss        = level_data["slime_boss"]
+gate_tile         = level_data["gate_tile"]
 
-#checkpoint logic
-last_checkpoint_tile = None
-checkpoint_tiles = [tiles[2], tiles[5], tiles[8]]
-
-# Enemy setup
-from enemy_slime import create_slimes
-from enemy_slime_2 import create_slime2
-from enemy_slime import create_blueslime_at
-from enemy_slime_2 import create_redslime_at
-from slime_boss import create_slime_boss
-slime1 = create_slimes()
-slime2 = create_slime2()
-slime3 = create_blueslime_at(x=1250, y=500, left_bound=1200, right_bound=1590,)
-slime4 = create_redslime_at(x=2350, y=300, left_bound=2300, right_bound=2700,)
-slime5 = create_blueslime_at(x=2850, y=400, left_bound=2800, right_bound=3200,)
-slime_boss = create_slime_boss()
-gate_tile = tiles[10]  #assuming the gate tile is at index 10
-
-slimes = pygame.sprite.Group(slime1, slime2, slime3, slime4, slime5, slime_boss)
-# Game loop
+# --- Game Loop ---
 running = True
 while running:
     clock.tick(FPS)
 
+    # Events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -65,61 +49,72 @@ while running:
     keys = pygame.key.get_pressed()
     player.update(keys, WIDTH, HEIGHT, tiles)
 
+    # Checkpoint system
     for tile in checkpoint_tiles:
-        if player.rect.colliderect(tile.rect) and tile != last_checkpoint_tile:
+        if player.rect.colliderect(tile.rect) and tile != last_checkpoint:
             player.set_checkpoint(tile.rect.x + 50, tile.rect.y - player.rect.height)
-            last_checkpoint_tile = tile
+            last_checkpoint = tile
 
-    # Camera update
+    # Camera follow
     camera_scroll = player.rect.centerx - WIDTH // 2
     camera_scroll = max(0, min(camera_scroll, level_length - WIDTH))
 
-    # Draw background
-    bg_width = background.get_width()
+   # Draw background
+    bg_width = city_bg.get_width()
     for i in range(-1, level_length // bg_width + 2):
-        screen.blit(background, (i * bg_width - camera_scroll, 0))
+        screen.blit(city_bg, (i * bg_width - camera_scroll, 0))
 
-    
-    # Draw tiles
+    # Draw background tiles (looping)
+    # --- Background drawing with segments ---
+    bg_width = city_bg.get_width()
+    forest_width = forest_bg.get_width()
+
+    # Loop city background until x = 4325
+    for i in range(-1, level_length // bg_width + 2):
+        draw_x = i * bg_width
+        world_x = draw_x + camera_scroll
+
+        if world_x + bg_width <= 4325:
+            screen.blit(city_bg, (draw_x - camera_scroll, 0))
+
+    # Draw tunnel background once between x = 4325 and x = 4900
+    tunnel_x_screen = 4325 - camera_scroll
+    if -tunnel_bg.get_width() < tunnel_x_screen < WIDTH:
+        screen.blit(tunnel_bg, (tunnel_x_screen, 0))
+
+    # Loop forest background from x = 5100 onward
+    start = (5100 // forest_width) - 1
+    end = (level_length // forest_width) + 2
+    for i in range(start, end):
+        draw_x = i * forest_width
+        if draw_x >= 5100:
+            screen.blit(forest_bg, (draw_x - camera_scroll, 0))
     for tile in tiles:
-            tile.update_gate()
-            tile.draw(screen, camera_scroll)
+        tile.update_gate()
+        tile.draw(screen, camera_scroll)
+        if tile in checkpoint_tiles:
+            pygame.draw.circle(screen, (255, 255, 0), (tile.rect.centerx - camera_scroll, tile.rect.top - 20), 10)
+        # Red box for tile
+        pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)
 
-            # Draw checkpoint marker if it's a checkpoint tile
-            if tile in checkpoint_tiles:
-                marker_x = tile.rect.centerx - camera_scroll
-                marker_y = tile.rect.top - 20
-                pygame.draw.circle(screen, (255, 255, 0), (marker_x, marker_y), 10)
 
-            # Debug visuals
-            pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)  # Red box for tile
-            pygame.draw.rect(screen, (0, 255, 0), player.hitbox.move(-camera_scroll, 0), 2)  # Green box for player hitbox
+    # Gate logic
+    if slime_boss.dead:
+        gate_tile.gate_opening = True
 
-            if slime_boss.dead:
-                gate_tile.gate_opening = True
-
-    # Update and draw slimes
+    # Draw slimes
     for slime in slimes:
         slime.update(player, tiles)
         screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
         slime.draw_healthbar(screen, camera_scroll)
-        #pygame.draw.rect(screen, (0, 255, 0), slime.hitbox.move(-camera_scroll, 0), 2)  # Green = hitbox
-        #pygame.draw.rect(screen, (255, 0, 0), slime.rect.move(-camera_scroll, 0), 2)    # Red = image
 
-
-        
-
-    # Debug visuals
-    pygame.draw.line(screen, (255, 0, 0), (0, 500), (800, 500), 2)
-
-    # Draw player spreite and health bar
+    # Draw player
     for sprite in all_sprites:
         screen.blit(player.image, (player.rect.x - camera_scroll, player.rect.y))
         player.draw_healthbar(screen, camera_scroll)
-
         if player.rect.top > HEIGHT:
             player.reset()
-        pygame.draw.rect(screen, (255, 0, 0), sprite.rect.move(-camera_scroll, 0), 2) # Red box for player rect
+        pygame.draw.rect(screen, (255, 0, 0), sprite.rect.move(-camera_scroll, 0), 2)
 
     pygame.display.flip()
 
