@@ -51,6 +51,9 @@ TILE_IMAGE_PATHS = {
     "small_platform": "assets/tiles and stuff/small_platform.png",
     "dirt": "assets/tiles and stuff/dirt_tile.png",
     "tunnel": "assets/tiles and stuff/tunnel_entrance.png",
+    "jungle": "assets/tiles and stuff/jungle_tile1.png",
+    "jungle2": "assets/tiles and stuff/jungle_tile2.png",
+    "jungle3": "assets/tiles and stuff/jungle_tile3.png",
     }
 
 def load_and_scale(image_path, width, height):
@@ -60,6 +63,7 @@ def load_and_scale(image_path, width, height):
 def get_tile_data():
         tiles = []
 
+        #---------------Level 1 Tiles----------------
         tiles.append(Tile(0, 500, 400, 300, image_path=TILE_IMAGE_PATHS["brick"]))
 
         tiles.append(Tile(500, 230, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
@@ -88,6 +92,24 @@ def get_tile_data():
         tiles.append(Tile(4300, 400, 700, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
         tiles.append(Tile(4900, 400, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
 
+
+        #----------------Level 2 Tiles----------------
+        tiles.append(Tile(5800, 500, 400, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
+        tiles.append(Tile(6200, 400, 500, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
+
+        tiles.append(Tile(6800, 300, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
+        tiles.append(Tile(7000, 200, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
+        tiles.append(Tile(7200, 100, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
+        tiles.append(Tile(7400, 0, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
+
+        tiles.append(Tile(7610, 500, 600, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
+        tiles.append(Tile(7600, 200, 700, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
+
+        tiles.append(Tile(8600, 250, 400, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
+        tiles.append(Tile(8300, 400, 500, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
+       
+
+        #----------------Level 1 Flipped Tiles----------------
         flipped_image3 = load_and_scale(TILE_IMAGE_PATHS["dirt"], 700, 600)
 
         # flipped dirt tile above
