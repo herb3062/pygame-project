@@ -2,6 +2,7 @@ import pygame
 import sys
 
 from level1 import setup_level1
+from flying import create_flyers
 # --- Initialization ---
 pygame.init()
 
@@ -13,6 +14,7 @@ FPS = 60
 
 # --- Load Assets ---
 
+# Backgrounds
 level_length = 10000
 camera_scroll = 0
 
@@ -35,6 +37,9 @@ last_checkpoint   = level_data["last_checkpoint_tile"]
 slimes            = level_data["slimes"]
 slime_boss        = level_data["slime_boss"]
 gate_tile         = level_data["gate_tile"]
+
+#---load flyers---
+flyers = create_flyers()
 
 # --- Game Loop ---
 running = True
@@ -64,7 +69,6 @@ while running:
     for i in range(-1, level_length // bg_width + 2):
         screen.blit(city_bg, (i * bg_width - camera_scroll, 0))
 
-    # Draw background tiles (looping)
     # --- Background drawing with segments ---
     bg_width = city_bg.get_width()
     forest_width = forest_bg.get_width()
@@ -89,6 +93,7 @@ while running:
         draw_x = i * forest_width
         if draw_x >= 5100:
             screen.blit(forest_bg, (draw_x - camera_scroll, 0))
+    # Draw tiles
     for tile in tiles:
         tile.update_gate()
         tile.draw(screen, camera_scroll)
@@ -96,7 +101,6 @@ while running:
             pygame.draw.circle(screen, (255, 255, 0), (tile.rect.centerx - camera_scroll, tile.rect.top - 20), 10)
         # Red box for tile
         pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)
-
 
     # Gate logic
     if slime_boss.dead:
@@ -108,10 +112,17 @@ while running:
         screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
         slime.draw_healthbar(screen, camera_scroll)
 
+    #draw flyers
+    for flyer in flyers:
+        flyer.update(player)
+        screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
+        flyer.draw_healthbar(screen, camera_scroll)
+        flyer.draw_hitbox(screen, camera_scroll)
     # Draw player
     for sprite in all_sprites:
         screen.blit(player.image, (player.rect.x - camera_scroll, player.rect.y))
         player.draw_healthbar(screen, camera_scroll)
+        
         if player.rect.top > HEIGHT:
             player.reset()
         pygame.draw.rect(screen, (255, 0, 0), sprite.rect.move(-camera_scroll, 0), 2)
