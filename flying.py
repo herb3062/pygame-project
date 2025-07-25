@@ -71,6 +71,7 @@ class Flyer(pygame.sprite.Sprite):
             self.death_timer = 0
             return
 
+        # Handle death state
         if self.dead:
             # Play death animation ONCE
             if not self.has_played_death_animation:
@@ -108,10 +109,12 @@ class Flyer(pygame.sprite.Sprite):
                     self.frame_index = 0
                     self.death_timer = 0
                     return
+        # Reset damage state if player is not attacking
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False  # Reset once player stops attacking
         distance_to_player = abs(self.rect.centerx - player.rect.centerx)
 
+        # State machine
         if self.state == 'idle':
             self.animate(self.idle_frames)
             if distance_to_player < 300:
@@ -119,6 +122,7 @@ class Flyer(pygame.sprite.Sprite):
                 self.state = 'approach'
                 self.frame_index = 0
 
+        # If the player is too far, reset state to idle
         elif self.state == 'approach':
             if abs(self.rect.centerx - self.target_x) > 5:
                 direction = 1 if self.target_x > self.rect.centerx else -1
@@ -132,7 +136,7 @@ class Flyer(pygame.sprite.Sprite):
                     self.frame_index = 0
                     return
                 
-                # NEW: Float up if player is above
+                # Float up if player is above
                 if player.rect.centery < self.rect.centery - 10:
                     self.rect.y -= 2  # You can tweak speed
                     self.hitbox.y = self.rect.y
@@ -147,6 +151,8 @@ class Flyer(pygame.sprite.Sprite):
                 self.state = 'attack_start'
                 self.frame_index = 0
 
+
+        # Attack sequence
         elif self.state == 'attack_start':
             self.animate(self.attack_start_frames, loop=False, next_state='attack_slam')
 
@@ -171,7 +177,7 @@ class Flyer(pygame.sprite.Sprite):
                     self.state = 'attack_end'
                     self.frame_index = 0
                     break
-
+        # End of attack sequence
         elif self.state == 'attack_end':
             self.animate(self.attack_end_frames, loop=False, next_state='return')
 
@@ -186,6 +192,33 @@ class Flyer(pygame.sprite.Sprite):
                 self.state = 'idle'
                 self.frame_index = 0
 
+        # Vertical movement
+        if self.state in ('return', 'approach', 'idle'):
+            # Only check vertical collisions during normal flying movement
+            for tile in tiles:
+                if self.hitbox.colliderect(tile.rect):
+                    if self.rect.centery < tile.rect.centery:
+                        # Hitting from top
+                        self.rect.bottom = tile.rect.top
+                        self.hitbox.bottom = tile.rect.top
+                        self.velocity_y = 0
+                    elif self.rect.centery > tile.rect.centery:
+                        # Hitting from below
+                        self.rect.top = tile.rect.bottom
+                        self.hitbox.top = tile.rect.bottom
+                        self.velocity_y = 0
+        # Horizontal movement collision
+        if self.state in ('approach', 'return'):
+            for tile in tiles:
+                if self.hitbox.colliderect(tile.rect):
+                    if self.rect.centerx < tile.rect.centerx:
+                        # Hitting from left
+                        self.rect.right = tile.rect.left
+                        self.hitbox.right = tile.rect.left
+                    elif self.rect.centerx > tile.rect.centerx:
+                        # Hitting from right
+                        self.rect.left = tile.rect.right
+                        self.hitbox.left = tile.rect.right
 
 
     def animate(self, frame_list, loop=True, next_state=None):
@@ -208,7 +241,7 @@ class Flyer(pygame.sprite.Sprite):
             raw_frame = frame_list[self.frame_index]
 
             # Flip based on direction 
-            if self.direction == 1:  # ➤ Flip when facing right instead
+            if self.direction == 1:  
                 raw_frame = pygame.transform.flip(raw_frame, True, False)
 
             self.image = raw_frame
@@ -248,4 +281,7 @@ def create_flyers():
     flyers.add(create_flyer_at(5800, 200))
     flyers.add(create_flyer_at(6200, 250))  # example
     flyers.add(create_flyer_at(6600, 180))  # add more as needed
+    flyers.add(create_flyer_at(7000, 100))  # example
+    flyers.add(create_flyer_at(7400, 101))  # example   
+    flyers.add(create_flyer_at(7800, 150))  # example
     return flyers

@@ -67,16 +67,16 @@ def get_tile_data():
         tiles.append(Tile(0, 500, 400, 300, image_path=TILE_IMAGE_PATHS["brick"]))
 
         tiles.append(Tile(500, 230, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
-        tiles.append(Tile(800, 400, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
+        tiles.append(Tile(800, 400, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))#checkpoint tile
         tiles.append(Tile(1200, 500, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
 
         tiles.append(Tile(1700, 250, 75, 90, image_path=TILE_IMAGE_PATHS["small_platform"]))
 
-        tiles.append(Tile(1800, 150, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
+        tiles.append(Tile(1800, 150, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))#checkpoint tile
         tiles.append(Tile(2300, 500, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
         tiles.append(Tile(2800, 400, 400, 600, image_path=TILE_IMAGE_PATHS["brick"]))
 
-        tiles.append(Tile(3300, 500, 600, 600, image_path=TILE_IMAGE_PATHS["brick"]))
+        tiles.append(Tile(3300, 500, 600, 600, image_path=TILE_IMAGE_PATHS["brick"]))#checkpoint tile
 
         
         tiles.append(Tile(3900, 500, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
@@ -89,12 +89,12 @@ def get_tile_data():
             gate_speed=1         # Adjust speed as needed
         ))
 
-        tiles.append(Tile(4300, 400, 700, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
+        tiles.append(Tile(4300, 400, 700, 600, image_path=TILE_IMAGE_PATHS["dirt"]))#checkpoint tile
         tiles.append(Tile(4900, 400, 800, 600, image_path=TILE_IMAGE_PATHS["dirt"]))
 
 
         #----------------Level 2 Tiles----------------
-        tiles.append(Tile(5800, 500, 400, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
+        tiles.append(Tile(5800, 500, 400, 100, image_path=TILE_IMAGE_PATHS["jungle"]))#checkpoint tile
         tiles.append(Tile(6200, 400, 500, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
 
         tiles.append(Tile(6800, 300, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
@@ -102,7 +102,7 @@ def get_tile_data():
         tiles.append(Tile(7200, 100, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
         tiles.append(Tile(7400, 0, 100, 100, image_path=TILE_IMAGE_PATHS["jungle2"]))
 
-        tiles.append(Tile(7610, 500, 600, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
+        tiles.append(Tile(7610, 500, 600, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))#checkpoint tile
         tiles.append(Tile(7600, 200, 700, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
 
         tiles.append(Tile(8600, 250, 400, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
