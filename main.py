@@ -114,10 +114,10 @@ while running:
 
     #draw flyers
     for flyer in flyers:
-        flyer.update(player)
-        screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
+        flyer.update(player, tiles)
         flyer.draw_healthbar(screen, camera_scroll)
         flyer.draw_hitbox(screen, camera_scroll)
+        screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
     # Draw player
     for sprite in all_sprites:
         screen.blit(player.image, (player.rect.x - camera_scroll, player.rect.y))

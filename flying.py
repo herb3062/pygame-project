@@ -3,7 +3,7 @@
 import pygame
 
 class Flyer(pygame.sprite.Sprite):
-    def __init__(self, x, y, sprite_sheet, frame_width, frame_height, num_frames, speed=4, scale_size=(128, 128)):
+    def __init__(self, x, y, sprite_sheet, frame_width, frame_height, num_frames, speed=4, scale_size=(128, 128), min_x=5600):
         super().__init__()
         self.scale_size = scale_size
 
@@ -28,6 +28,7 @@ class Flyer(pygame.sprite.Sprite):
         self.target_x = None
         self.velocity_y = 0
         self.gravity = 2
+        self.min_x = min_x
 
         # States
         self.state = 'idle'  # idle, approach, attack_start, attack_slam, attack_end, return, dead
@@ -43,6 +44,16 @@ class Flyer(pygame.sprite.Sprite):
         self.max_health = 30
         self.current_health = 30
 
+        # Respawn
+        self.spawn_x = x
+        self.spawn_y = y
+        self.respawn_delay = 420  # 7 seconds at 60 FPS
+        self.death_timer = 0
+        self.has_played_death_animation = False
+
+        # Damage state
+        self.has_damaged = False
+
     def load_frames(self, sprite_sheet, frame_width, frame_height, num_frames):
         frames = []
         for i in range(num_frames):
@@ -51,23 +62,54 @@ class Flyer(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player):
-        if self.dead:
-            self.animate(self.dead_frames, loop=False)
+    def update(self, player, tiles):
+        #check if flyer is off the map
+        if self.rect.top > 1000 and not self.dead:
+           
+            self.dead = True
+            self.frame_index = 0
+            self.death_timer = 0
             return
 
-        # Debugging current state
-        print(f"[DEBUG] Current state: {self.state}")
+        if self.dead:
+            # Play death animation ONCE
+            if not self.has_played_death_animation:
+                self.animate(self.dead_frames, loop=False)
+                if self.frame_index >= len(self.dead_frames):
+                    
+                    self.has_played_death_animation = True
+                    self.frame_index = 0
+                    self.frame_counter = 0
+            else:
+                self.death_timer += 1
+                if self.death_timer >= self.respawn_delay:
+                    
+                    self.dead = False
+                    self.has_played_death_animation = False
+                    self.death_timer = 0
+                    self.current_health = self.max_health
+                    self.rect.topleft = (self.spawn_x, self.spawn_y)
+                    self.hitbox.topleft = self.rect.topleft
+                    self.velocity_y = 0
+                    self.state = 'idle'
+                    self.frame_index = 0
+                    self.frame_counter = 0
+            return
 
-        # Take damage from player
+        # Player attack damage
         if self.hitbox.colliderect(player.hitbox) and player.state in ('attack', 'sword_attack'):
-            damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
-            self.current_health -= damage
-            if self.current_health <= 0:
-                self.dead = True
-                self.frame_index = 0
-                return
-
+            if not self.has_damaged:
+                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
+                self.current_health -= damage
+                print(f"[DEBUG] Took {damage} damage. Health now {self.current_health}")
+                self.has_damaged = True
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.frame_index = 0
+                    self.death_timer = 0
+                    return
+        elif player.state not in ('attack', 'sword_attack'):
+            self.has_damaged = False  # Reset once player stops attacking
         distance_to_player = abs(self.rect.centerx - player.rect.centerx)
 
         if self.state == 'idle':
@@ -80,7 +122,25 @@ class Flyer(pygame.sprite.Sprite):
         elif self.state == 'approach':
             if abs(self.rect.centerx - self.target_x) > 5:
                 direction = 1 if self.target_x > self.rect.centerx else -1
-                self.rect.x += direction * self.speed
+                self.direction = direction  
+                next_x = self.rect.x + direction * self.speed
+
+                # Prevent moving left past min_x — turn around if hit
+                if direction == -1 and next_x < self.min_x:
+                    self.target_x = player.rect.centerx  # Recalculate new approach target
+                    self.state = 'idle'  # Return to idle so it can re-acquire a new approach later
+                    self.frame_index = 0
+                    return
+                
+                # NEW: Float up if player is above
+                if player.rect.centery < self.rect.centery - 10:
+                    self.rect.y -= 2  # You can tweak speed
+                    self.hitbox.y = self.rect.y
+                elif player.rect.centery > self.rect.centery + 10:
+                    self.rect.y += 2
+                    self.hitbox.y = self.rect.y
+
+                self.rect.x = next_x
                 self.hitbox.x = self.rect.x
                 self.animate(self.move_frames)
             else:
@@ -96,12 +156,21 @@ class Flyer(pygame.sprite.Sprite):
             self.hitbox.y = self.rect.y
             self.animate(self.attack_slam_frames, loop=True)
 
-            if self.rect.bottom >= 500:  # Assuming 500 is ground
-                self.rect.bottom = 500
-                self.hitbox.bottom = 500
-                self.velocity_y = 0
-                self.state = 'attack_end'
-                self.frame_index = 0
+            # Damage player if colliding during slam
+            if self.hitbox.colliderect(player.hitbox) and not player.invincible:
+                player.current_health -= 25
+                player.invincible = True
+                player.invincible_timer = 0
+
+            # Ground collision
+            for tile in tiles:
+                if self.hitbox.colliderect(tile.rect):
+                    self.rect.bottom = tile.rect.top
+                    self.hitbox.bottom = tile.rect.top
+                    self.velocity_y = 0
+                    self.state = 'attack_end'
+                    self.frame_index = 0
+                    break
 
         elif self.state == 'attack_end':
             self.animate(self.attack_end_frames, loop=False, next_state='return')
@@ -118,7 +187,7 @@ class Flyer(pygame.sprite.Sprite):
                 self.frame_index = 0
 
 
-                
+
     def animate(self, frame_list, loop=True, next_state=None):
         if self.frame_index >= len(frame_list):
             if loop:
@@ -133,11 +202,19 @@ class Flyer(pygame.sprite.Sprite):
 
         # This runs only when not switching state
         self.frame_counter += 1
+        self.frame_counter += 1
         if self.frame_counter >= 6:
             self.frame_counter = 0
-            self.image = frame_list[self.frame_index]
+            raw_frame = frame_list[self.frame_index]
+
+            # Flip based on direction 
+            if self.direction == 1:  # ➤ Flip when facing right instead
+                raw_frame = pygame.transform.flip(raw_frame, True, False)
+
+            self.image = raw_frame
             self.frame_index += 1
     def draw_healthbar(self, surface, camera_scroll=0):
+        """Draws the health bar above the enemy."""
         if self.dead:
             return
         bar_width = 40
@@ -155,14 +232,20 @@ class Flyer(pygame.sprite.Sprite):
             pygame.draw.rect(surface, (255, 0, 0), adjusted_hitbox, 2)  # Red outline
 
 
-def create_flyers():
+def create_flyer_at(x, y):
     flyer = Flyer(
-        x=5800,
-        y=200,
+        x=x,
+        y=y,
         sprite_sheet=pygame.image.load("assets/character_animations/flying_enemy/flying_idle.png").convert_alpha(),
         frame_width=64,
         frame_height=64,
         num_frames=8
     )
-    return pygame.sprite.Group(flyer)
+    return flyer
 
+def create_flyers():
+    flyers = pygame.sprite.Group()
+    flyers.add(create_flyer_at(5800, 200))
+    flyers.add(create_flyer_at(6200, 250))  # example
+    flyers.add(create_flyer_at(6600, 180))  # add more as needed
+    return flyers
