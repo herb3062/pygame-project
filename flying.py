@@ -102,7 +102,7 @@ class Flyer(pygame.sprite.Sprite):
             if not self.has_damaged:
                 damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
                 self.current_health -= damage
-                print(f"[DEBUG] Took {damage} damage. Health now {self.current_health}")
+               
                 self.has_damaged = True
                 if self.current_health <= 0:
                     self.dead = True
@@ -226,7 +226,7 @@ class Flyer(pygame.sprite.Sprite):
             if loop:
                 self.frame_index = 0
             elif next_state:
-                print(f"[DEBUG] Finished animation for state: {self.state}, switching to {next_state}")
+                
                 self.state = next_state
                 self.frame_index = 0
                 return  #  Exit so next state's animation starts fresh

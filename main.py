@@ -3,6 +3,7 @@ import sys
 
 from level1 import setup_level1
 from flying import create_flyers
+from skeleton import create_skeleton_boss
 # --- Initialization ---
 pygame.init()
 
@@ -40,6 +41,9 @@ gate_tile         = level_data["gate_tile"]
 
 #---load flyers---
 flyers = create_flyers()
+
+#---load skeleton boss---
+skeleton_boss = create_skeleton_boss()
 
 # --- Game Loop ---
 running = True
@@ -118,6 +122,14 @@ while running:
         flyer.draw_healthbar(screen, camera_scroll)
         flyer.draw_hitbox(screen, camera_scroll)
         screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
+
+    # Draw skeleton boss
+    skeleton_boss.update(player, tiles)
+    for skeleton in skeleton_boss:
+        screen.blit(skeleton.image, (skeleton.rect.x - camera_scroll, skeleton.rect.y))
+        skeleton.draw_healthbar(screen, camera_scroll)
+        pygame.draw.rect(screen, (0, 0, 255), skeleton.rect.move(-camera_scroll, 0), 2)
+        
     # Draw player
     for sprite in all_sprites:
         screen.blit(player.image, (player.rect.x - camera_scroll, player.rect.y))

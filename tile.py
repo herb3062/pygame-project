@@ -54,6 +54,7 @@ TILE_IMAGE_PATHS = {
     "jungle": "assets/tiles and stuff/jungle_tile1.png",
     "jungle2": "assets/tiles and stuff/jungle_tile2.png",
     "jungle3": "assets/tiles and stuff/jungle_tile3.png",
+    "stone": "assets/tiles and stuff/brick_tile.png",
     }
 
 def load_and_scale(image_path, width, height):
@@ -105,9 +106,10 @@ def get_tile_data():
         tiles.append(Tile(7610, 500, 600, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))#checkpoint tile
         tiles.append(Tile(7600, 200, 700, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
 
-        tiles.append(Tile(8600, 250, 400, 100, image_path=TILE_IMAGE_PATHS["jungle3"]))
+        
         tiles.append(Tile(8300, 400, 500, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
-       
+
+        tiles.append(Tile(8800, 500, 600, 100, image_path=TILE_IMAGE_PATHS["stone"]))
 
         #----------------Level 1 Flipped Tiles----------------
         flipped_image3 = load_and_scale(TILE_IMAGE_PATHS["dirt"], 700, 600)

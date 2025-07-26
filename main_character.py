@@ -43,6 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.max_health=100
         self.current_health = 100
 
+        # Load the sprite sheet for the player
         self.speed = 3
         self.run_speed=5
         self.damage= 10
@@ -54,23 +55,26 @@ class Player(pygame.sprite.Sprite):
         self.direction = 'right'
         self.state = 'idle' 
 
+        # Hitbox and rect
         self.invincible = False
         self.invincible_timer = 0
         self.invincible_duration = 60
-
+        # Set the initial position and rect
         self.prev_state = self.state
-
+        # Set the initial position and rect
         self.current_frame = 0
         self.frame_counter = 0
-
+        # Set the initial position and rect
         self.respawn_x = x
         self.respawn_y = y
-
+        # Set the initial position and rect
         self.checkpoint_x = x
         self.checkpoint_y = y
         
         self.attack_cooldown = 30
         self.attack_timer = 0
+
+        self.has_damaged = False
        
 
         self.image = self.idle_images[0]
@@ -234,7 +238,7 @@ class Player(pygame.sprite.Sprite):
             self.image = self.attack_images[self.current_frame]
 
         elif self.state == 'sword_attack':
-            if self.frame_counter >= 3:
+            if self.frame_counter >= 8:
                 self.frame_counter = 0
                 self.current_frame += 1
                 if self.current_frame >= len(self.sword_images):
