@@ -30,6 +30,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
         self.gravity = 1.5
         self.velocity_y = 0
 
+        # State and health
         self.attack_cooldown = 60  # frames between attacks
         self.attack_timer = 0
         self.has_damaged_player = False
@@ -37,6 +38,8 @@ class SkeletonBoss(pygame.sprite.Sprite):
         self.damage = 50
         self.has_damaged_player = False
         self.dead = False  
+        self.max_health = 100
+        self.current_health = self.max_health
 
     def load_frames(self, path, frame_width, frame_height, num_frames):
         sheet = pygame.image.load(path).convert_alpha()  
@@ -50,7 +53,33 @@ class SkeletonBoss(pygame.sprite.Sprite):
     def update(self, player, tiles):
         if self.dead:
             self.animate(self.death_frames, loop=False)
-            return
+            self.frame_counter += 1
+            if self.frame_counter >= 8:
+                self.frame_counter = 0
+                self.frame_index += 1
+                if self.frame_index < len(self.death_frames):
+                    frame_image = self.death_frames[self.frame_index]
+                    if self.direction == -1:
+                        frame_image = pygame.transform.flip(frame_image, True, False)
+                    self.image = frame_image
+            return  # skip everything else
+        
+
+        
+        # --- Check if player is attacking the skeleton boss ---
+        if player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
+            if not self.has_damaged:
+                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
+                self.current_health -= damage
+                self.has_damaged = True
+
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.state = 'dead'
+                    self.frame_index = 0  # start death animation
+                    self.frame_counter = 0
+        else:
+            self.has_damaged = False
 
         # --- Attack logic ---
         distance_to_player = abs(self.rect.centerx - player.rect.centerx)
@@ -117,16 +146,36 @@ class SkeletonBoss(pygame.sprite.Sprite):
         if self.direction == -1:
             walk_image = pygame.transform.flip(walk_image, True, False)
         self.image = walk_image
+    
+    def animate(self, frames, loop=True):
+        if self.frame_index >= len(frames):
+            if loop:
+                self.frame_index = 0
+            else:
+                self.frame_index = len(frames) - 1  # Stay on last frame
+                return
 
+        self.frame_counter += 1
+        if self.frame_counter >= 8:  # Adjust speed if needed
+            self.frame_counter = 0
+            frame = frames[self.frame_index]
+            if self.direction == -1:
+                frame = pygame.transform.flip(frame, True, False)
+            self.image = frame
+            self.frame_index += 1
 
     def draw_healthbar(self, surface, camera_scroll=0):
-        bar_width = 80
-        bar_height = 10
+        if self.dead:
+            return  # Hide bar when dead
+
+        bar_width = 100
+        bar_height = 8
         bar_x = self.rect.x - camera_scroll + (self.rect.width - bar_width) // 2
         bar_y = self.rect.y - 20
-        pygame.draw.rect(surface, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
-        health_ratio = self.hitbox.width / self.hitbox.width  # replace with actual health if needed
-        pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
+
+        health_ratio = self.current_health / self.max_health
+        pygame.draw.rect(surface, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))  # Red background
+        pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))  # Green health
 
 def create_skeleton_boss():
     boss = SkeletonBoss(x=8800, y=400, frame_width=96, frame_height=64)
