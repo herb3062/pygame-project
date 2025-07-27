@@ -48,7 +48,7 @@ class Player(pygame.sprite.Sprite):
         self.run_speed=5
         self.damage= 10
         self.weapon_damage = 20
-        self.jump_power = 17
+        self.jump_power = 30
         self.gravity = 1
         self.velocity_y = 0
         self.on_ground = True
@@ -76,6 +76,7 @@ class Player(pygame.sprite.Sprite):
 
         self.has_damaged = False
        
+        self.sword_unlocked = False
 
         self.image = self.idle_images[0]
         # Set the initial rect and hitbox
@@ -137,7 +138,7 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_e]:
                 self.state = 'attack'
 
-            if keys[pygame.K_s] and self.attack_timer == 0:
+            if keys[pygame.K_s] and self.attack_timer == 0 and self.sword_unlocked:
                 self.state = 'sword_attack'
                 self.attack_timer = self.attack_cooldown
 
@@ -236,7 +237,7 @@ class Player(pygame.sprite.Sprite):
                     self.state = 'idle'
                     self.current_frame = 0
             self.image = self.attack_images[self.current_frame]
-
+    
         elif self.state == 'sword_attack':
             if self.frame_counter >= 8:
                 self.frame_counter = 0

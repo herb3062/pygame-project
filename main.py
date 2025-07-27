@@ -2,6 +2,8 @@ import pygame
 import sys
 
 from level1 import setup_level1
+from questions import questions
+from questions import questions
 from flying import create_flyers
 from skeleton import create_skeleton_boss
 # --- Initialization ---
@@ -12,6 +14,13 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pygame Game")
 clock = pygame.time.Clock()
 FPS = 60
+
+question_active = False
+user_input = ""
+current_prompt = ""
+correct_answer = ""
+show_popup = False
+popup_timer = 0
 
 # --- Load Assets ---
 
@@ -45,6 +54,11 @@ flyers = create_flyers()
 #---load skeleton boss---
 skeleton_boss = create_skeleton_boss()
 
+# Initialize glowing orb image and sword trigger rect at the top
+sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
+sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
+sword_trigger_rect = sword_trigger_img.get_rect(topleft=(300, 445))
+
 # --- Game Loop ---
 running = True
 while running:
@@ -52,11 +66,34 @@ while running:
 
     # Events
     for event in pygame.event.get():
+        if question_active:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    user_input = user_input[:-1]
+                elif event.key == pygame.K_RETURN:
+                    if user_input.lower().strip() == 'no':
+                        question_active = False
+                    elif user_input.strip() == correct_answer:
+                        player.sword_unlocked = True
+                        show_popup = True
+                        popup_timer = pygame.time.get_ticks()
+                        print("Correct! Sword unlocked.")
+                        sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
+                        sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
+                        question_active = False
+
+                    else:
+                        print("Incorrect answer.")
+                        question_active = False
+                    user_input = ""
+                else:
+                    user_input += event.unicode
         if event.type == pygame.QUIT:
             running = False
 
     keys = pygame.key.get_pressed()
-    player.update(keys, WIDTH, HEIGHT, tiles)
+    if not question_active:
+        player.update(keys, WIDTH, HEIGHT, tiles)
 
     # Checkpoint system
     for tile in checkpoint_tiles:
@@ -67,6 +104,10 @@ while running:
     # Camera follow
     camera_scroll = player.rect.centerx - WIDTH // 2
     camera_scroll = max(0, min(camera_scroll, level_length - WIDTH))
+
+    if player.rect.colliderect(sword_trigger_rect) and not player.sword_unlocked and not question_active:
+        current_prompt, correct_answer = questions()
+        question_active = True
 
    # Draw background
     bg_width = city_bg.get_width()
@@ -137,6 +178,25 @@ while running:
         if player.rect.top > HEIGHT:
             player.reset()
         pygame.draw.rect(screen, (255, 0, 0), sprite.rect.move(-camera_scroll, 0), 2)
+
+    if question_active:
+        font = pygame.font.SysFont(None, 32)
+        lines = current_prompt.split('\n')
+        for i, line in enumerate(lines):
+            line_surf = font.render(line, True, (255, 255, 255))
+            screen.blit(line_surf, (WIDTH // 2 - line_surf.get_width() // 2, 200 + i * 40))
+        input_surf = font.render(user_input, True, (200, 200, 0))
+        screen.blit(input_surf, (WIDTH // 2 - input_surf.get_width() // 2, 200 + len(lines) * 40))
+
+    if show_popup:
+        font = pygame.font.SysFont(None, 36)
+        popup_surf = font.render("You can now use the sword power-up!", True, (0, 255, 0))
+        screen.blit(popup_surf, (WIDTH // 2 - popup_surf.get_width() // 2, HEIGHT // 2))
+        if pygame.time.get_ticks() - popup_timer > 3000:
+            show_popup = False
+
+    # Draw the glowing orb
+    screen.blit(sword_trigger_img, (sword_trigger_rect.x - camera_scroll, sword_trigger_rect.y))
 
     pygame.display.flip()
 

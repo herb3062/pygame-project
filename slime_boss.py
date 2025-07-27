@@ -8,7 +8,7 @@ class slime_boss(Slime):
         jump_sheet = pygame.image.load("assets/character_animations/slime_boss/slime_boss_jump.png").convert_alpha()
         attack_sheet = pygame.image.load("assets/character_animations/slime_boss/slime_boss_attack.png").convert_alpha()
 
-        super().__init__(x, y, walk_sheet, 128, 128, 7, left_bound, right_bound, speed, scale_size=(240, 240))
+        super().__init__(x, y, walk_sheet, 128, 128, 7, left_bound, right_bound, speed)
 
         self.walk_frames = self.load_frames(walk_sheet, 128, 128, 7)
         self.jump_frames = self.load_frames(jump_sheet, 128, 128, 12)
