@@ -1,7 +1,7 @@
 import pygame
 
 class SkeletonBoss(pygame.sprite.Sprite):
-    def __init__(self, x, y, frame_width, frame_height, scale_size=(128, 128), left_bound=9000, right_bound=9400):
+    def __init__(self, x, y, frame_width, frame_height, scale_size=(128, 128), left_bound=8800, right_bound=9400):
         super().__init__()
         self.scale_size = scale_size
         self.frame_width = frame_width
@@ -41,6 +41,12 @@ class SkeletonBoss(pygame.sprite.Sprite):
         self.max_health = 100
         self.current_health = self.max_health
 
+        # Lives and respawn
+        self.lives = 3
+        self.respawning = False
+        self.respawn_counter = 0
+        self.perma_dead = False
+
     def load_frames(self, path, frame_width, frame_height, num_frames):
         sheet = pygame.image.load(path).convert_alpha()  
         frames = []
@@ -51,8 +57,29 @@ class SkeletonBoss(pygame.sprite.Sprite):
         return frames
 
     def update(self, player, tiles):
+        if self.perma_dead:
+            return
+
+        # Handle respawn animation
+        if self.respawning:
+            self.respawn_counter += 1
+            if self.respawn_counter % 8 == 0 and self.frame_index > 0:
+                self.frame_index -= 1
+                frame = self.death_frames[self.frame_index]
+                if self.direction == -1:
+                    frame = pygame.transform.flip(frame, True, False)
+                self.image = frame
+
+            if self.frame_index <= 0:
+                self.respawning = False
+                self.dead = False
+                self.frame_index = 0
+                self.frame_counter = 0
+                self.current_health = self.max_health
+            return
+
+        # Handle death animation
         if self.dead:
-            self.animate(self.death_frames, loop=False)
             self.frame_counter += 1
             if self.frame_counter >= 8:
                 self.frame_counter = 0
@@ -62,10 +89,20 @@ class SkeletonBoss(pygame.sprite.Sprite):
                     if self.direction == -1:
                         frame_image = pygame.transform.flip(frame_image, True, False)
                     self.image = frame_image
-            return  # skip everything else
-        
+                else:
+                    # Wait 5 seconds (300 frames at 60 FPS)
+                    self.respawn_counter += 1
+                    if self.respawn_counter >= 10:
+                        self.lives -= 1
+                        if self.lives > 0:
+                            self.respawning = True
+                            self.frame_index = len(self.death_frames) - 1
+                            self.frame_counter = 0
+                            self.respawn_counter = 0
+                        else:
+                            self.perma_dead = True
+            return
 
-        
         # --- Check if player is attacking the skeleton boss ---
         if player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
             if not self.has_damaged:
@@ -81,12 +118,24 @@ class SkeletonBoss(pygame.sprite.Sprite):
         else:
             self.has_damaged = False
 
-        # --- Attack logic ---
+        # Calculate attack condition only if player is in front
+        player_in_front = (
+            (self.direction == 1 and player.rect.centerx > self.rect.centerx) or
+            (self.direction == -1 and player.rect.centerx < self.rect.centerx)
+        )
+
         distance_to_player = abs(self.rect.centerx - player.rect.centerx)
-        in_attack_range = distance_to_player <= self.attack_range and abs(self.rect.centery - player.rect.centery) < 80
+        in_attack_range = (
+            player_in_front and
+            distance_to_player <= self.attack_range and
+            abs(self.rect.centery - player.rect.centery) < 80
+        )
 
         if in_attack_range:
-            self.state = 'attack'
+            if self.state != 'attack':
+                self.state = 'attack'
+                self.frame_index = 0
+                self.frame_counter = 0
             self.frame_counter += 1
             if self.frame_counter >= 6:
                 self.frame_counter = 0
@@ -127,12 +176,19 @@ class SkeletonBoss(pygame.sprite.Sprite):
         if self.on_ground:
             self.hitbox.x += self.speed * self.direction
 
-            # Patrol bounds
-            if self.direction == -1 and self.hitbox.left <= self.left_bound:
-                self.direction = 1
-            elif self.direction == 1 and self.hitbox.right >= self.right_bound:
+           # Turn toward player only if they are within detection range and within patrol bounds
+        turn_distance = 400  # You can tweak this range
+        if abs(player.rect.centerx - self.rect.centerx) < turn_distance:
+            if player.rect.centerx < self.rect.centerx and self.direction == 1 and self.rect.left > self.left_bound:
                 self.direction = -1
+            elif player.rect.centerx > self.rect.centerx and self.direction == -1 and self.rect.right < self.right_bound:
+                self.direction = 1
 
+        # Optionally still obey patrol bounds
+        if self.direction == -1 and self.hitbox.left <= self.left_bound:
+            self.direction = 1
+        elif self.direction == 1 and self.hitbox.right >= self.right_bound:
+            self.direction = -1
         # Sync sprite to hitbox
         self.rect.midbottom = self.hitbox.midbottom
 

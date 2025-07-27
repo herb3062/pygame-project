@@ -128,7 +128,6 @@ while running:
     for skeleton in skeleton_boss:
         screen.blit(skeleton.image, (skeleton.rect.x - camera_scroll, skeleton.rect.y))
         skeleton.draw_healthbar(screen, camera_scroll)
-        pygame.draw.rect(screen, (0, 0, 255), skeleton.rect.move(-camera_scroll, 0), 2)
         
     # Draw player
     for sprite in all_sprites:

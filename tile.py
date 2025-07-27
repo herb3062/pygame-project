@@ -4,8 +4,13 @@ class Tile:
     def __init__(self, x, y, width, height, image_path=None, image_surface=None, color=(0, 0, 0), collide_height=80, is_gate=False, gate_target_y=None, gate_speed=1):
         self.image_rect = pygame.Rect(x, y, width, height)
         if image_surface:
-            # Special case for flipped tile: move rect to bottom
-            self.rect = pygame.Rect(x, y + (height - collide_height), width, collide_height)
+            # Automatically detect vertical orientation based on dimensions
+            if height > width:
+                # Vertical tile (rotated 90 degrees) — narrow vertical collider
+                self.rect = pygame.Rect(x + width // 20, y, width * 10 // 11, height)
+            else:
+                # Horizontal tile (possibly flipped) — standard top collider
+                self.rect = pygame.Rect(x, y + (height - collide_height), width, collide_height)
         else:
             # Default (normal image): collision box at top
             self.rect = pygame.Rect(x, y, width, collide_height)
@@ -109,7 +114,18 @@ def get_tile_data():
         
         tiles.append(Tile(8300, 400, 500, 100, image_path=TILE_IMAGE_PATHS["jungle"]))
 
-        tiles.append(Tile(8800, 500, 600, 100, image_path=TILE_IMAGE_PATHS["stone"]))
+        tiles.append(Tile(8800, 500, 700, 100, image_path=TILE_IMAGE_PATHS["stone"]))
+        tiles.append(Tile(8800, 0, 700, 100, image_path=TILE_IMAGE_PATHS["stone"]))
+
+        # Add vertically rotated stone tile (90 degrees clockwise)
+        rotated_stone_image = load_and_scale(TILE_IMAGE_PATHS["stone"], 600, 100)
+        rotated_stone_image = pygame.transform.rotate(rotated_stone_image, 90)
+
+        # Create the new vertical tile (100 wide, 600 tall)
+        rotated_stone_tile = Tile(9400, 0, 100, 600, image_surface=rotated_stone_image)
+        tiles.append(rotated_stone_tile)
+        rotated_stone_tile = Tile(8800, -300, 100, 600, image_surface=rotated_stone_image) #stone gate
+        tiles.append(rotated_stone_tile)
 
         #----------------Level 1 Flipped Tiles----------------
         flipped_image3 = load_and_scale(TILE_IMAGE_PATHS["dirt"], 700, 600)
