@@ -70,7 +70,7 @@ class Slime(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles):
+    def update(self, player, tiles,sound_fx):
         # Death and respawn
         if self.dead:
             self.death_timer += 1
@@ -95,6 +95,7 @@ class Slime(pygame.sprite.Sprite):
             if self.current_health <= 0:
                 self.dead = True
                 self.death_timer = 0
+                sound_fx["slime_death"].play()
 
         # Player attack damage
         if player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
@@ -105,6 +106,7 @@ class Slime(pygame.sprite.Sprite):
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
+                    sound_fx['slime_death'].play()  # Play death sound
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False
 
@@ -116,6 +118,8 @@ class Slime(pygame.sprite.Sprite):
                 player.invincible = True
                 player.invincible_timer = 0
                 self.has_damaged = True
+                sound_fx["slime_attack"].play()
+                sound_fx["player_death"].play() 
         else:
             self.has_damaged = False
 
@@ -126,6 +130,7 @@ class Slime(pygame.sprite.Sprite):
             self.jumping = True 
             self.horizontal_velocity = self.speed * self.direction  # Start horizontal move
             self.jump_timer = 0
+            sound_fx["slime_jump"].play()
         else:
             self.horizontal_velocity = 0
 

@@ -56,7 +56,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles):
+    def update(self, player, tiles,sound_fx):
         if self.perma_dead:
             return
 
@@ -115,6 +115,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
                     self.state = 'dead'
                     self.frame_index = 0  # start death animation
                     self.frame_counter = 0
+                    sound_fx["skeleton_death"].play()
         else:
             self.has_damaged = False
 
@@ -136,6 +137,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
                 self.state = 'attack'
                 self.frame_index = 0
                 self.frame_counter = 0
+                sound_fx["skeleton_attack"].play()
             self.frame_counter += 1
             if self.frame_counter >= 6:
                 self.frame_counter = 0
@@ -156,6 +158,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
                     player.invincible = True
                     player.invincible_timer = 0
                     self.has_damaged_player = True
+                    sound_fx["skeleton_attack"].play()
 
             return  # Skip movement if attacking
 

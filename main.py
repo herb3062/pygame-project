@@ -7,8 +7,11 @@ from questions import questions
 from flying import create_flyers
 from skeleton import create_skeleton_boss
 from menu import Menu
+from sound import sounds
 # --- Initialization ---
 pygame.init()
+
+sound_fx = sounds() 
 
 WIDTH, HEIGHT = 900, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -114,7 +117,7 @@ while running:
 
     keys = pygame.key.get_pressed()
     if not question_active:
-        player.update(keys, WIDTH, HEIGHT, tiles)
+        player.update(keys, WIDTH, HEIGHT, tiles,sound_fx)
 
     # Checkpoint system
     for tile in checkpoint_tiles:
@@ -174,19 +177,19 @@ while running:
 
     # Draw slimes
     for slime in slimes:
-        slime.update(player, tiles)
+        slime.update(player, tiles,sound_fx)
         screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
         slime.draw_healthbar(screen, camera_scroll)
 
     #draw flyers
     for flyer in flyers:
-        flyer.update(player, tiles)
+        flyer.update(player, tiles,sound_fx)
         flyer.draw_healthbar(screen, camera_scroll)
         flyer.draw_hitbox(screen, camera_scroll)
         screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
 
     # Draw skeleton boss
-    skeleton_boss.update(player, tiles)
+    skeleton_boss.update(player, tiles,sound_fx)
     for skeleton in skeleton_boss:
         screen.blit(skeleton.image, (skeleton.rect.x - camera_scroll, skeleton.rect.y))
         skeleton.draw_healthbar(screen, camera_scroll)

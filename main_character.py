@@ -47,7 +47,7 @@ class Player(pygame.sprite.Sprite):
         self.speed = 3
         self.run_speed=5
         self.damage= 10
-        self.weapon_damage = 20
+        self.weapon_damage = 30
         self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
@@ -100,7 +100,7 @@ class Player(pygame.sprite.Sprite):
             images.append(img)
         return images
 
-    def update(self, keys,screen_width, screen_height, tiles):
+    def update(self, keys,screen_width, screen_height, tiles,sound_fx):
         dx=0
 
         if self.state != 'attack':
@@ -133,14 +133,18 @@ class Player(pygame.sprite.Sprite):
                 self.velocity_y = -self.jump_power
                 self.on_ground = False
                 self.state = 'jump'
+                sound_fx['player_jump'].play()
 
             # ATTACK
             if keys[pygame.K_e]:
                 self.state = 'attack'
+                sound_fx['player_attack'].play()
 
             if keys[pygame.K_s] and self.attack_timer == 0 and self.sword_unlocked:
                 self.state = 'sword_attack'
                 self.attack_timer = self.attack_cooldown
+                sound_fx['player_swordattack'].play()
+
 
         ## Gravity and vertical movement
         self.velocity_y += self.gravity

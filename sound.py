@@ -8,6 +8,8 @@ def sounds():
     player_attack = pygame.mixer.Sound("assets/sounds/playerattack.mp3")
     player_swordattack = pygame.mixer.Sound("assets/sounds/sword_attack.mp3")
     player_death = pygame.mixer.Sound("assets/sounds/player_death.mp3")
+    skeleton_attack = pygame.mixer.Sound("assets/sounds/skeleton_attack.mp3")
+    skeleton_death = pygame.mixer.Sound("assets/sounds/skeleton_death.mp3")
     background_music = pygame.mixer.Sound("assets/sounds/background_music.mp3")
     background_music.set_volume(0.5) 
     background_music.play(-1)  
@@ -19,5 +21,7 @@ def sounds():
         "player_attack": player_attack,
         "player_death": player_death,
         "player_swordattack": player_swordattack,
+        "skeleton_attack": skeleton_attack,
+        "skeleton_death": skeleton_death,
         "background_music": background_music
     }
