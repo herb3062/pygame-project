@@ -93,7 +93,7 @@ class Menu:
                     if self.buttons["play"].collidepoint(mx, my):
                         running = False
                     elif self.buttons["settings"].collidepoint(mx, my):
-                        print("Settings screen to be implemented.")
+                        self.show_settings_page()
                     elif self.buttons["exit"].collidepoint(mx, my):
                         pygame.quit()
                         sys.exit()
@@ -124,3 +124,56 @@ class Menu:
             self.screen.blit(self.menu_img, self.menu_rect.topleft)
             pygame.display.flip()
             self.clock.tick(60)
+
+    def show_settings_page(self):
+        running = True
+        font = pygame.font.Font(None, 32)  # Replace with your pixel font if desired
+
+        # Instruction images and labels — replace with real paths when ready
+        instructions = [
+            {"label": "Jump",        "img_path": "assets/menu/up.png",           "pos": (self.WIDTH // 2 - 150, 100)},
+            {"label": "walk/turn",   "img_path": "assets/menu/left-right.png",   "pos": (self.WIDTH // 2 - 150, 180)},
+            {"label": "Attack",      "img_path": "assets/menu/e.png",       "pos": (self.WIDTH // 2 - 150, 260)},
+            {"label": "Sword",       "img_path": "assets/menu/s.png",        "pos": (self.WIDTH // 2 - 150, 340)},
+            {"label": "Run",         "img_path": "assets/menu/space.png",        "pos": (self.WIDTH // 2 - 150, 420)},
+        ]
+
+        # Load and scale each image
+        for ins in instructions:
+            try:
+                img = pygame.image.load(ins["img_path"]).convert_alpha()
+                ins["img"] = pygame.transform.scale(img, (100, 50))
+            except Exception as e:
+                print(f"Error loading {ins['img_path']}: {e}")
+                ins["img"] = pygame.Surface((100, 50))  # fallback blank box
+                ins["img"].fill((100, 100, 100))
+
+        # Back button
+        back_button = pygame.Rect(self.WIDTH // 2 - 60, 500, 120, 40)
+
+        while running:
+            self.clock.tick(60)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if back_button.collidepoint(pygame.mouse.get_pos()):
+                        running = False
+
+            # Show paused game behind settings
+            self.draw_game_frame()
+
+            # Draw instruction images + labels
+            for ins in instructions:
+                self.screen.blit(ins["img"], ins["pos"])
+                label = font.render(ins["label"], True, (255, 255, 255))
+                label_rect = label.get_rect(midleft=(ins["pos"][0] + 120, ins["pos"][1] + 25))
+                self.screen.blit(label, label_rect)
+
+            # Draw back button
+            pygame.draw.rect(self.screen, (255, 255, 255), back_button, 2)
+            back_text = font.render("BACK", True, (255, 255, 255))
+            self.screen.blit(back_text, back_text.get_rect(center=back_button.center))
+
+            pygame.display.flip()
