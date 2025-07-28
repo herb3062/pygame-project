@@ -48,7 +48,7 @@ class Player(pygame.sprite.Sprite):
         self.run_speed=5
         self.damage= 10
         self.weapon_damage = 20
-        self.jump_power = 30
+        self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
         self.on_ground = True

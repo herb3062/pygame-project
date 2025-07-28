@@ -6,12 +6,15 @@ from questions import questions
 from questions import questions
 from flying import create_flyers
 from skeleton import create_skeleton_boss
+from menu import Menu
 # --- Initialization ---
 pygame.init()
 
 WIDTH, HEIGHT = 900, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pygame Game")
+
+
 clock = pygame.time.Clock()
 FPS = 60
 
@@ -51,6 +54,20 @@ gate_tile         = level_data["gate_tile"]
 #---load flyers---
 flyers = create_flyers()
 
+#--- Create Menu ---
+menu = Menu(
+    screen=screen,
+    player=player,
+    tiles=tiles,
+    city_bg=city_bg,
+    tunnel_bg=tunnel_bg,
+    forest_bg=forest_bg,
+    level_length=level_length,
+    screen_width=WIDTH,
+    screen_height=HEIGHT
+)
+menu.run()
+
 #---load skeleton boss---
 skeleton_boss = create_skeleton_boss()
 
@@ -63,6 +80,8 @@ sword_trigger_rect = sword_trigger_img.get_rect(topleft=(300, 445))
 running = True
 while running:
     clock.tick(FPS)
+
+   
 
     # Events
     for event in pygame.event.get():
@@ -90,6 +109,8 @@ while running:
                     user_input += event.unicode
         if event.type == pygame.QUIT:
             running = False
+        if menu.check_settings_click(event):
+            menu.pause_menu()
 
     keys = pygame.key.get_pressed()
     if not question_active:
@@ -197,6 +218,8 @@ while running:
 
     # Draw the glowing orb
     screen.blit(sword_trigger_img, (sword_trigger_rect.x - camera_scroll, sword_trigger_rect.y))
+
+    menu.draw_settings_icon()
 
     pygame.display.flip()
 
