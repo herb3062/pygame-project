@@ -27,6 +27,7 @@ current_prompt = ""
 correct_answer = ""
 show_popup = False
 popup_timer = 0
+current_question_type = ""
 
 # --- Load Assets ---
 
@@ -79,6 +80,11 @@ sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png
 sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
 sword_trigger_rect = sword_trigger_img.get_rect(topleft=(300, 445))
 
+gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
+gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
+gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
+
+
 # --- Game Loop ---
 running = True
 while running:
@@ -96,12 +102,20 @@ while running:
                     if user_input.lower().strip() == 'no':
                         question_active = False
                     elif user_input.strip() == correct_answer:
-                        player.sword_unlocked = True
-                        show_popup = True
-                        popup_timer = pygame.time.get_ticks()
-                        print("Correct! Sword unlocked.")
-                        sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
-                        sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
+                        if current_question_type == 'sword':
+                            player.sword_unlocked = True
+                            show_popup = True
+                            popup_timer = pygame.time.get_ticks()
+                            print("Correct! Sword unlocked.")
+                            sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
+                            sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
+                        elif current_question_type == 'gun':
+                            player.gun_unlocked = True
+                            show_popup = True
+                            popup_timer = pygame.time.get_ticks()
+                            print("Correct! Gun unlocked.")
+                            gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
+                            gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
                         question_active = False
 
                     else:
@@ -131,6 +145,11 @@ while running:
 
     if player.rect.colliderect(sword_trigger_rect) and not player.sword_unlocked and not question_active:
         current_prompt, correct_answer = questions()
+        current_question_type = 'sword'
+        question_active = True
+    elif player.rect.colliderect(gun_trigger_rect) and not player.gun_unlocked and not question_active:
+        current_prompt, correct_answer = questions()
+        current_question_type = 'gun'
         question_active = True
 
    # Draw background
@@ -198,6 +217,7 @@ while running:
     for sprite in all_sprites:
         screen.blit(player.image, (player.rect.x - camera_scroll, player.rect.y))
         player.draw_healthbar(screen, camera_scroll)
+        player.draw_bullets(screen, camera_scroll)
         
         if player.rect.top > HEIGHT:
             player.reset()
@@ -214,13 +234,15 @@ while running:
 
     if show_popup:
         font = pygame.font.SysFont(None, 36)
-        popup_surf = font.render("You can now use the sword power-up!", True, (0, 255, 0))
+        popup_text = "You can now use the sword power-up!" if current_question_type == 'sword' else "You can now use the gun power-up!"
+        popup_surf = font.render(popup_text, True, (0, 255, 0))
         screen.blit(popup_surf, (WIDTH // 2 - popup_surf.get_width() // 2, HEIGHT // 2))
         if pygame.time.get_ticks() - popup_timer > 3000:
             show_popup = False
 
     # Draw the glowing orb
     screen.blit(sword_trigger_img, (sword_trigger_rect.x - camera_scroll, sword_trigger_rect.y))
+    screen.blit(gun_trigger_img, (gun_trigger_rect.x - camera_scroll, gun_trigger_rect.y))
 
     menu.draw_settings_icon()
 
