@@ -68,12 +68,15 @@ def run_game():
     )
     menu.run()
 
-    # --- Load Power-up Triggers (Chests) ---
-    sword_trigger_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
-    sword_trigger_rect = sword_trigger_img.get_rect(topleft=(5000, 345))
+# Initialize glowing orb image and sword trigger rect at the top
+sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
+sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
+sword_trigger_rect = sword_trigger_img.get_rect(topleft=(5000, 345))
+sword_trigger_rect = sword_trigger_img.get_rect(topleft=(5000, 345))
 
-    gun_trigger_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
-    gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
+gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
+gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
+gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
 
     extra_health_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
     extra_health_rect = extra_health_img.get_rect(topleft=(300, 445))
@@ -117,15 +120,21 @@ def run_game():
                             if current_question_type == 'emergency_health':
                                 player.current_health += 50
                             question_active = False
-                            user_input = ""
-                        else:
-                            question_active = False
-                            user_input = ""
-                    else:
-                        user_input += event.unicode
 
-            if menu.check_settings_click(event):
-                menu.pause_menu()
+                        else:
+                            print("Incorrect answer.")
+                            question_active = False
+                        user_input = ""
+                    else:
+                        print("Incorrect answer.") 
+                        question_active = False
+                    user_input = ""
+                else:
+                    user_input += event.unicode
+        if event.type == pygame.QUIT:
+            running = False
+        if menu.check_settings_click(event):
+            menu.pause_menu()
 
         keys = pygame.key.get_pressed()
         if not question_active:
@@ -193,14 +202,15 @@ def run_game():
                 pygame.draw.circle(screen, (255, 255, 0), (tile.rect.centerx - camera_scroll, tile.rect.top - 20), 10)
             pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)
 
+        # Gate logic
         if slime_boss.dead:
             gate_tile.gate_opening = True
 
-        # Enemies
-        for slime in slimes:
-            slime.update(player, tiles, sound_fx, camera_scroll, WIDTH)
-            screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
-            slime.draw_healthbar(screen, camera_scroll)
+    # Draw slimes
+    for slime in slimes:
+        slime.update(player, tiles,sound_fx,camera_scroll, WIDTH)
+        screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
+        slime.draw_healthbar(screen, camera_scroll)
 
         for flyer in flyers:
             flyer.update(player, tiles, sound_fx)
@@ -237,14 +247,7 @@ def run_game():
 
         if show_popup:
             font = pygame.font.SysFont(None, 36)
-            popup_map = {
-                'sword': "You can now use the sword power-up!",
-                'gun': "You can now use the gun power-up!",
-                'extra_health': "Extra health granted!",
-                'shield': "Shield power activated!",
-                'emergency_health': "You got lucky — health restored!",
-            }
-            popup_text = popup_map.get(current_question_type, "")
+            popup_text = "You can now use the sword power-up!" if current_question_type == 'sword' else "You can now use the gun power-up!"
             popup_surf = font.render(popup_text, True, (0, 255, 0))
             screen.blit(popup_surf, (WIDTH // 2 - popup_surf.get_width() // 2, HEIGHT // 2))
             if pygame.time.get_ticks() - popup_timer > 3000:

@@ -2,6 +2,7 @@ import pygame
 
 def sounds():
     gate_open = pygame.mixer.Sound("assets/sounds/gate_open.mp3")
+    gate_open = pygame.mixer.Sound("assets/sounds/gate_open.mp3")
     slime_jump = pygame.mixer.Sound("assets/sounds/slimejump-6913.mp3")
     slime_attack = pygame.mixer.Sound("assets/sounds/slime-impact-352473.mp3")
     slime_death = pygame.mixer.Sound("assets/sounds/slime-splat-1-219248.mp3")

@@ -79,6 +79,7 @@ class slime_boss(Slime):
                 player.invincible = True
                 player.invincible_timer = 0
                 self.has_damaged = True
+                sound_fx['player_damage'].play()
 
                 # Knockback logic
                 if self.direction == 1:
@@ -105,6 +106,7 @@ class slime_boss(Slime):
         self.on_ground = False
 
         if self.jumping:
+            sound_fx['slime_jump'].play()
             self.hitbox.x += self.speed * self.direction
 
         # Collisions
