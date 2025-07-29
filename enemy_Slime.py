@@ -25,8 +25,7 @@ class Slime(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=(x, y))
         self.hitbox = pygame.Rect(0, 0, self.rect.width -60, self.rect.height - 100)  # Adjust hitbox size as needed
         self.hitbox.centerx = self.rect.centerx
-        self.hitbox.bottom = self.rect.bottom  # align it to the bottom of the slime
-        
+        self.hitbox.bottom = self.rect.bottom  # align it to the bottom of the slimes
         # Movement bounds and speed
         self.left_bound = left_bound
         self.right_bound = right_bound
@@ -45,7 +44,7 @@ class Slime(pygame.sprite.Sprite):
         self.jumping = False
 
         # Health and death
-        self.max_health = 30
+        self.max_health = 50
         self.current_health = self.max_health
         self.dead = False
         self.death_timer = 0
@@ -70,7 +69,7 @@ class Slime(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles):
+    def update(self, player, tiles,sound_fx):
         # Death and respawn
         if self.dead:
             self.death_timer += 1
@@ -91,21 +90,36 @@ class Slime(pygame.sprite.Sprite):
             and player.hitbox.bottom <= self.hitbox.top + 20
             and self.hitbox.colliderect(player.hitbox)
         ):
-            self.current_health -= 15
+            self.current_health -= 20
             player.velocity_y = -30
             if self.current_health <= 0:
                 self.dead = True
                 self.death_timer = 0
+                sound_fx["slime_death"].play()
 
-        # Player attack damage
-        if player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
+        # Player gun attack damage (updated logic)
+        if player.state == 'gun_attack' and not self.has_damaged:
+            dx = self.hitbox.centerx - player.hitbox.centerx
+            in_range = abs(dx) <= player.gun_range
+            facing_right = player.direction == 'right' and dx > 0
+            facing_left = player.direction == 'left' and dx < 0
+
+            if in_range and (facing_right or facing_left):
+                self.current_health -= player.gun_damage
+                self.has_damaged = True
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.death_timer = 0
+                    sound_fx['slime_death'].play()
+        elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
             if not self.has_damaged:
-                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
+                damage = player.sword_damage if player.state == 'sword_attack' else player.damage
                 self.current_health -= damage
                 self.has_damaged = True
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
+                    sound_fx['slime_death'].play()
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False
 
@@ -113,10 +127,12 @@ class Slime(pygame.sprite.Sprite):
         self.attacking = self.hitbox.colliderect(player.rect)
         if self.attacking:
             if not self.has_damaged and not player.invincible:
-                player.current_health -= 10
+                player.current_health -= 5
                 player.invincible = True
                 player.invincible_timer = 0
                 self.has_damaged = True
+                sound_fx["slime_attack"].play()
+                sound_fx["player_death"].play() 
         else:
             self.has_damaged = False
 
@@ -127,6 +143,7 @@ class Slime(pygame.sprite.Sprite):
             self.jumping = True 
             self.horizontal_velocity = self.speed * self.direction  # Start horizontal move
             self.jump_timer = 0
+            sound_fx["slime_jump"].play()
         else:
             self.horizontal_velocity = 0
 
@@ -233,4 +250,4 @@ def create_blueslime_at(x, y, left_bound, right_bound,):
         speed=2,
     )
 
-    
+ 

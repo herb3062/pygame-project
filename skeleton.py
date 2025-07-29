@@ -56,7 +56,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles):
+    def update(self, player, tiles,sound_fx):
         if self.perma_dead:
             return
 
@@ -104,18 +104,30 @@ class SkeletonBoss(pygame.sprite.Sprite):
             return
 
         # --- Check if player is attacking the skeleton boss ---
-        if player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
-            if not self.has_damaged:
-                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
-                self.current_health -= damage
-                self.has_damaged = True
+        if player.state == 'gun_attack' and not self.has_damaged:
+            dx = self.hitbox.centerx - player.hitbox.centerx
+            in_range = abs(dx) <= player.gun_range
+            facing_right = player.direction == 'right' and dx > 0
+            facing_left = player.direction == 'left' and dx < 0
 
+            if in_range and (facing_right or facing_left):
+                self.current_health -= player.gun_damage
+                self.has_damaged = True
                 if self.current_health <= 0:
                     self.dead = True
-                    self.state = 'dead'
-                    self.frame_index = 0  # start death animation
-                    self.frame_counter = 0
-        else:
+                    self.death_timer = 0
+                    sound_fx['slime_death'].play()
+                    
+        elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
+            if not self.has_damaged:
+                damage = player.sword_damage if player.state == 'sword_attack' else player.damage
+                self.current_health -= damage
+                self.has_damaged = True
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.death_timer = 0
+                    sound_fx['slime_death'].play()
+        elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False
 
         # Calculate attack condition only if player is in front
@@ -136,6 +148,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
                 self.state = 'attack'
                 self.frame_index = 0
                 self.frame_counter = 0
+                sound_fx["skeleton_attack"].play()
             self.frame_counter += 1
             if self.frame_counter >= 6:
                 self.frame_counter = 0
@@ -156,6 +169,7 @@ class SkeletonBoss(pygame.sprite.Sprite):
                     player.invincible = True
                     player.invincible_timer = 0
                     self.has_damaged_player = True
+                    sound_fx["skeleton_attack"].play()
 
             return  # Skip movement if attacking
 

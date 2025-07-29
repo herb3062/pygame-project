@@ -18,9 +18,6 @@ class Player(pygame.sprite.Sprite):
             'fighter_jump_0045.png', 'fighter_jump_0046.png'
         ])
 
-        self.current_frame = 0
-        self.frame_counter = 0
-        self.image = self.idle_images[0]
         
 
         self.run_images= self.load_images([
@@ -40,6 +37,15 @@ class Player(pygame.sprite.Sprite):
             'sword_combo_0068.png','sword_combo_0069.png'
         ])
 
+        self.gun_images = self.load_images([
+            'pistol_shot_0064.png','pistol_shot_0065.png'
+        ])
+
+
+        self.current_frame = 0
+        self.frame_counter = 0
+        self.image = self.idle_images[0]
+
         self.max_health=100
         self.current_health = 100
 
@@ -47,7 +53,9 @@ class Player(pygame.sprite.Sprite):
         self.speed = 3
         self.run_speed=5
         self.damage= 10
-        self.weapon_damage = 20
+        self.sword_damage = 20
+        self.gun_damage = 3
+        self.gun_range = 150  # pixels
         self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
@@ -71,14 +79,12 @@ class Player(pygame.sprite.Sprite):
         self.checkpoint_x = x
         self.checkpoint_y = y
         
-        self.attack_cooldown = 30
-        self.attack_timer = 0
 
         self.has_damaged = False
        
         self.sword_unlocked = False
+        self.gun_unlocked = False
 
-        self.image = self.idle_images[0]
         # Set the initial rect and hitbox
         self.rect  = self.image.get_rect(topleft=(x, y))
 
@@ -86,6 +92,7 @@ class Player(pygame.sprite.Sprite):
         self.hitbox = self.rect.inflate(-20, -10)  
         self.hitbox.bottom = self.rect.bottom      
 
+        self.bullets = pygame.sprite.Group()
 
     def load_images(self, file_list, base_path="assets/character_animations/"):
     # """Load → crop transparent padding under feet → return Surfaces."""
@@ -100,7 +107,7 @@ class Player(pygame.sprite.Sprite):
             images.append(img)
         return images
 
-    def update(self, keys,screen_width, screen_height, tiles):
+    def update(self, keys,screen_width, screen_height, tiles,sound_fx):
         dx=0
 
         if self.state != 'attack':
@@ -133,14 +140,28 @@ class Player(pygame.sprite.Sprite):
                 self.velocity_y = -self.jump_power
                 self.on_ground = False
                 self.state = 'jump'
+                sound_fx['player_jump'].play()
 
             # ATTACK
             if keys[pygame.K_e]:
                 self.state = 'attack'
+                sound_fx['player_attack'].play()
 
-            if keys[pygame.K_s] and self.attack_timer == 0 and self.sword_unlocked:
+            if keys[pygame.K_s] and self.sword_unlocked:
                 self.state = 'sword_attack'
-                self.attack_timer = self.attack_cooldown
+                sound_fx['player_swordattack'].play()
+
+            if keys[pygame.K_d] and self.gun_unlocked and self.state != 'gun_attack':
+                self.state = 'gun_attack'
+                dx = 0 
+                self.current_frame = 0
+                self.frame_counter = 0
+                sound_fx['player_gunattack'].play()
+                bullet_y = self.rect.centery
+                bullet_x = self.rect.right if self.direction == 'right' else self.rect.left
+                bullet = Bullet(bullet_x, bullet_y, 1 if self.direction == 'right' else -1)
+                self.bullets.add(bullet)
+
 
         ## Gravity and vertical movement
         self.velocity_y += self.gravity
@@ -201,10 +222,10 @@ class Player(pygame.sprite.Sprite):
                 self.invincible = False
                 self.invincible_timer = 0
 
-        if self.attack_timer > 0:
-            self.attack_timer -= 1
 
         self.animate()
+
+        self.bullets.update()
 
 
     def animate(self):
@@ -239,13 +260,22 @@ class Player(pygame.sprite.Sprite):
             self.image = self.attack_images[self.current_frame]
     
         elif self.state == 'sword_attack':
-            if self.frame_counter >= 8:
+            if self.frame_counter >= 12:
                 self.frame_counter = 0
                 self.current_frame += 1
                 if self.current_frame >= len(self.sword_images):
                     self.state = 'idle'
                     self.current_frame = 0
             self.image = self.sword_images[self.current_frame]
+
+        elif self.state == 'gun_attack':
+            if self.frame_counter >= 12:
+                self.frame_counter = 0
+                self.current_frame += 1
+                if self.current_frame >= len(self.gun_images):
+                    self.current_frame = 0
+                    self.state = 'idle'  # Transition out cleanly
+            self.image = self.gun_images[self.current_frame]
         
         elif self.state in ('run', 'run_left'):
             if self.frame_counter >= 3:
@@ -290,3 +320,22 @@ class Player(pygame.sprite.Sprite):
     def set_checkpoint(self, x, y):
         self.respawn_x = x
         self.respawn_y = y
+
+    def draw_bullets(self, surface, camera_scroll):
+        for bullet in self.bullets:
+            surface.blit(bullet.image, (bullet.rect.x - camera_scroll, bullet.rect.y))
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        super().__init__()
+        self.image = pygame.image.load("assets/character_animations/bullet.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (10, 10))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.direction = direction
+        self.speed = 10
+
+    def update(self):
+        self.rect.x += self.speed * self.direction
+        if self.rect.right < 0 or self.rect.left > 10000:
+            self.kill()

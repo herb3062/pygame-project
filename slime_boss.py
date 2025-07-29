@@ -9,7 +9,7 @@ class slime_boss(Slime):
         attack_sheet = pygame.image.load("assets/character_animations/slime_boss/slime_boss_attack.png").convert_alpha()
 
         super().__init__(x, y, walk_sheet, 128, 128, 7, left_bound, right_bound, speed, scale_size=(240, 240))
-
+        
         self.walk_frames = self.load_frames(walk_sheet, 128, 128, 7)
         self.jump_frames = self.load_frames(jump_sheet, 128, 128, 12)
         self.attack_frames = self.load_frames(attack_sheet, 128, 128, 4)
@@ -25,7 +25,7 @@ class slime_boss(Slime):
         self.knockback_strength = 20
         self.scale = 1.5
 
-    def update(self, player, tiles):
+    def update(self, player, tiles,sound_fx):
         if self.dead:
             # Permanently dead — don't respawn
             self.image.set_alpha(0)
@@ -45,14 +45,29 @@ class slime_boss(Slime):
                 self.death_timer = 0
 
         # Player attack
-        if player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
+        if player.state == 'gun_attack' and not self.has_damaged:
+            dx = self.hitbox.centerx - player.hitbox.centerx
+            in_range = abs(dx) <= player.gun_range
+            facing_right = player.direction == 'right' and dx > 0
+            facing_left = player.direction == 'left' and dx < 0
+
+            if in_range and (facing_right or facing_left):
+                self.current_health -= player.gun_damage
+                self.has_damaged = True
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.death_timer = 0
+                    sound_fx['slime_death'].play()
+                    
+        elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
             if not self.has_damaged:
-                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
+                damage = player.sword_damage if player.state == 'sword_attack' else player.damage
                 self.current_health -= damage
                 self.has_damaged = True
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
+                    sound_fx['slime_death'].play()
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False
 

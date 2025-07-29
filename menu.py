@@ -2,7 +2,7 @@ import pygame
 import sys
 
 class Menu:
-    def __init__(self, screen, player, tiles, city_bg, tunnel_bg, forest_bg, level_length, screen_width, screen_height):
+    def __init__(self, screen, player, tiles, city_bg, tunnel_bg, forest_bg, level_length, screen_width, screen_height, timer):
         self.screen = screen
         self.player = player
         self.tiles = tiles
@@ -12,6 +12,7 @@ class Menu:
         self.level_length = level_length
         self.WIDTH = screen_width
         self.HEIGHT = screen_height
+        self.timer = timer
 
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 30)
@@ -71,6 +72,8 @@ class Menu:
 
         self.screen.blit(self.player.image, (self.player.rect.x - camera_scroll, self.player.rect.y))
 
+        self.timer.render(self.screen, self.font, self.WIDTH)
+
     def draw_settings_icon(self):
         self.screen.blit(self.settings_icon, self.settings_rect)
 
@@ -82,8 +85,10 @@ class Menu:
 
     def run(self):
         """Start screen menu"""
+        self.timer.pause()
         running = True
         while running:
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -91,8 +96,10 @@ class Menu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
                     if self.buttons["play"].collidepoint(mx, my):
+                        self.timer.resume()
                         running = False
                     elif self.buttons["settings"].collidepoint(mx, my):
+                        self.timer.pause()
                         self.show_settings_page()
                     elif self.buttons["exit"].collidepoint(mx, my):
                         pygame.quit()
@@ -106,6 +113,7 @@ class Menu:
 
     def pause_menu(self):
         """Pause menu during gameplay"""
+        self.timer.pause()
         paused = True
         while paused:
             for event in pygame.event.get():
@@ -115,6 +123,7 @@ class Menu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = pygame.mouse.get_pos()
                     if self.buttons["play"].collidepoint(mx, my):
+                        self.timer.resume()
                         paused = False
                     elif self.buttons["exit"].collidepoint(mx, my):
                         pygame.quit()
@@ -149,7 +158,7 @@ class Menu:
                 ins["img"].fill((100, 100, 100))
 
         # Back button
-        back_button = pygame.Rect(self.WIDTH // 2 - 60, 500, 120, 40)
+        back_button = pygame.Rect(self.WIDTH // 2 - 60, 600, 120, 40)
 
         while running:
             self.clock.tick(60)
@@ -160,6 +169,7 @@ class Menu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if back_button.collidepoint(pygame.mouse.get_pos()):
                         running = False
+                        
 
             # Show paused game behind settings
             self.draw_game_frame()
@@ -175,5 +185,7 @@ class Menu:
             pygame.draw.rect(self.screen, (255, 255, 255), back_button, 2)
             back_text = font.render("BACK", True, (255, 255, 255))
             self.screen.blit(back_text, back_text.get_rect(center=back_button.center))
+
+            
 
             pygame.display.flip()

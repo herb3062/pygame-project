@@ -62,7 +62,7 @@ class Flyer(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles):
+    def update(self, player, tiles,sound_fx):
         #check if flyer is off the map
         if self.rect.top > 1000 and not self.dead:
            
@@ -284,4 +284,8 @@ def create_flyers():
     flyers.add(create_flyer_at(7000, 100))  # example
     flyers.add(create_flyer_at(7400, 101))  # example   
     flyers.add(create_flyer_at(7800, 150))  # example
+    flyers.add(create_flyer_at(7465, 100))
+    flyers.add(create_flyer_at(7965, 50))
+    flyers.add(create_flyer_at(9865, 80))
+    flyers.add(create_flyer_at(6765, 140))
     return flyers
