@@ -78,15 +78,15 @@ gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png")
 gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
 gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
 
-    extra_health_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
-    extra_health_rect = extra_health_img.get_rect(topleft=(300, 445))
+extra_health_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
+extra_health_rect = extra_health_img.get_rect(topleft=(300, 445))
 
-    shield_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
-    shield_trigger_rect = shield_img.get_rect(topleft=(3000, 345))
+shield_img = pygame.transform.scale(pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha(), (55, 60))
+shield_trigger_rect = shield_img.get_rect(topleft=(3000, 345))
 
     # --- Game Loop ---
-    running = True
-    while running:
+running = True
+while running:
         clock.tick(FPS)
 
         for event in pygame.event.get():
@@ -256,8 +256,8 @@ gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
         menu.draw_settings_icon()
         pygame.display.flip()
 
-    pygame.quit()
-    sys.exit()
+pygame.quit()
+sys.exit()
 
 if __name__ == "__main__":
     run_game()
