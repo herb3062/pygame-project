@@ -9,6 +9,7 @@ class GameTimer:
         self.pause_start_time = None
         self.running = True
         self.elapsed_time = 0
+        self.paused_time = 0
 
     def pause(self):
         if self.running:
@@ -32,7 +33,11 @@ class GameTimer:
         return text  
     def get_final_time(self):
         return self.elapsed_time
-    
+    def stop(self):
+        if self.running:
+            self.paused_time += pygame.time.get_ticks() - self.start_time
+            self.running = False
+        return self.update()
 
     @staticmethod
     def load_high_score(file_path="highscore.txt"):

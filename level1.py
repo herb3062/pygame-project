@@ -8,7 +8,7 @@ from slime_boss import create_slime_boss
 def setup_level1():
     tiles = get_tile_data()
 
-    player = Player(3300, 450)
+    player = Player(8500, 450)
     all_sprites = pygame.sprite.Group(player)
 
     checkpoint_tiles = [tiles[2], tiles[5], tiles[8], tiles[11], tiles[13], tiles[19]]

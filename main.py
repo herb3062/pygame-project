@@ -219,10 +219,11 @@ while running:
         screen.blit(skeleton.image, (skeleton.rect.x - camera_scroll, skeleton.rect.y))
         skeleton.draw_healthbar(screen, camera_scroll)
         if skeleton.perma_dead and not end_triggered:
-            end_screen = EndScreen(screen, WIDTH, HEIGHT)
+            final_time = game_timer.stop()
+            end_screen = EndScreen(screen, WIDTH, HEIGHT, final_time)
             end_screen.run()
             end_triggered = True
-            final_time = game_timer.stop()
+           
             game_timer.draw_final(screen)
             pygame.display.flip()
             pygame.time.wait(4000)

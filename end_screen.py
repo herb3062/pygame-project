@@ -3,11 +3,13 @@ import sys
 import os
 
 class EndScreen:
-    def __init__(self, screen, screen_width, screen_height):
+    def __init__(self, screen, screen_width, screen_height, final_time):
         self.screen = screen
         self.WIDTH = screen_width
         self.HEIGHT = screen_height
         self.clock = pygame.time.Clock()
+        self.final_time = final_time
+        self.font = pygame.font.SysFont(None, 48)
 
         # Load animation frames
         self.frames = self.load_frames("assets/end_screen/end_frame")
@@ -27,6 +29,26 @@ class EndScreen:
         self.sound_stage = 0  
         self.start_time = pygame.time.get_ticks()
 
+        # High score logic
+        self.highscore_file = "highscore.txt"
+        self.high_score = self.load_high_score()
+        self.new_record = self.final_time < self.high_score
+        if self.new_record:
+            self.save_high_score(self.final_time)
+
+    def load_high_score(self):
+        if os.path.exists(self.highscore_file):
+            with open(self.highscore_file, "r") as f:
+                try:
+                    return float(f.read().strip())
+                except ValueError:
+                    return float("inf")
+        return float("inf")
+
+    def save_high_score(self, new_score):
+        with open(self.highscore_file, "w") as f:
+            f.write(str(new_score))
+
     def load_frames(self, folder_path):
         frame_files = sorted(
             [f for f in os.listdir(folder_path) if f.endswith((".png", ".jpg"))]
@@ -40,8 +62,6 @@ class EndScreen:
 
     def run(self):
         running = True
-
-        
         pygame.mixer.stop()
 
         while running:
@@ -65,6 +85,17 @@ class EndScreen:
 
             self.screen.blit(self.frames[self.frame_index], self.rect)
 
+            # Timer text
+            time_text = self.font.render(f"Your Score: {self.final_time:.2f}s", True, (255, 255, 255))
+            self.screen.blit(time_text, time_text.get_rect(center=(self.WIDTH // 2, self.HEIGHT - 100)))
+
+            # High score text
+            if self.new_record:
+                hs_text = self.font.render("New High Score!", True, (255, 215, 0))
+            else:
+                hs_text = self.font.render(f"High Score: {self.high_score:.2f}s", True, (200, 200, 200))
+            self.screen.blit(hs_text, hs_text.get_rect(center=(self.WIDTH // 2, self.HEIGHT - 50)))
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -72,4 +103,3 @@ class EndScreen:
 
             pygame.display.flip()
             self.clock.tick(60)
-

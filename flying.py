@@ -100,7 +100,7 @@ class Flyer(pygame.sprite.Sprite):
         # Player attack damage
         if self.hitbox.colliderect(player.hitbox) and player.state in ('attack', 'sword_attack'):
             if not self.has_damaged:
-                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
+                damage = player.sword_damage if player.state == 'sword_attack' else player.damage
                 self.current_health -= damage
                
                 self.has_damaged = True
