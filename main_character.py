@@ -52,10 +52,10 @@ class Player(pygame.sprite.Sprite):
         self.speed = 3
         self.run_speed=5
         self.damage= 10
-        self.sword_damage = 30
-        self.gun_damage = 40
+        self.sword_damage = 20
+        self.gun_damage = 3
         self.gun_range = 150  # pixels
-        self.jump_power = 23
+        self.jump_power = 17
         self.gravity = 1
         self.velocity_y = 0
         self.on_ground = True
@@ -161,6 +161,7 @@ class Player(pygame.sprite.Sprite):
 
             if keys[pygame.K_d] and self.gun_unlocked and self.state != 'gun_attack' and self.current_ammo > 0 and self.bullet_timer == 0:
                 self.state = 'gun_attack'
+                dx = 0 
                 self.current_frame = 0
                 self.frame_counter = 0
                 sound_fx['player_gunattack'].play()

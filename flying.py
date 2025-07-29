@@ -300,4 +300,8 @@ def create_flyers():
     flyers.add(create_flyer_at(7000, 100))  # example
     flyers.add(create_flyer_at(7400, 101))  # example   
     flyers.add(create_flyer_at(7800, 150))  # example
+    flyers.add(create_flyer_at(7465, 100))
+    flyers.add(create_flyer_at(7965, 50))
+    flyers.add(create_flyer_at(9865, 80))
+    flyers.add(create_flyer_at(6765, 140))
     return flyers

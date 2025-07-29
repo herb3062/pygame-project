@@ -8,81 +8,82 @@ from flying import create_flyers
 from skeleton import create_skeleton_boss
 from menu import Menu
 from sound import sounds
+from end_screen import EndScreen
+from timer import GameTimer
 # --- Initialization ---
 pygame.init()
 
-sound_fx = sounds() 
+def run_game():
+    sound_fx = sounds() 
 
-WIDTH, HEIGHT = 900, 700
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pygame Game")
+    WIDTH, HEIGHT = 900, 700
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Pygame Game")
 
 
-clock = pygame.time.Clock()
-FPS = 60
+    clock = pygame.time.Clock()
+    FPS = 60
 
-question_active = False
-user_input = ""
-current_prompt = ""
-correct_answer = ""
-show_popup = False
-popup_timer = 0
-current_question_type = ""
+    question_active = False
+    user_input = ""
+    current_prompt = ""
+    correct_answer = ""
+    show_popup = False
+    popup_timer = 0
+    current_question_type = ""
 
-# --- Load Assets ---
+    # --- Load Assets ---
 
-# Backgrounds
-level_length = 10000
-camera_scroll = 0
+    # Backgrounds
+    level_length = 10000
+    camera_scroll = 0
 
-city_bg = pygame.image.load("assets/background/city_1/10.png").convert_alpha()
-city_bg = pygame.transform.scale(city_bg, (WIDTH, HEIGHT))
+    city_bg = pygame.image.load("assets/background/city_1/10.png").convert_alpha()
+    city_bg = pygame.transform.scale(city_bg, (WIDTH, HEIGHT))
 
-tunnel_bg = pygame.image.load("assets/background/tunnel_tile.png").convert_alpha()
-tunnel_bg = pygame.transform.scale(tunnel_bg, (1350, 700))
+    tunnel_bg = pygame.image.load("assets/background/tunnel_tile.png").convert_alpha()
+    tunnel_bg = pygame.transform.scale(tunnel_bg, (1350, 700))
 
-forest_bg = pygame.image.load("assets/background/forest_background.png").convert_alpha()
-forest_bg = pygame.transform.scale(forest_bg, (WIDTH, HEIGHT))
+    forest_bg = pygame.image.load("assets/background/forest_background.png").convert_alpha()
+    forest_bg = pygame.transform.scale(forest_bg, (WIDTH, HEIGHT))
 
-# --- Load Level 1 ---
-level_data = setup_level1()
-tiles             = level_data["tiles"]
-player            = level_data["player"]
-all_sprites       = level_data["all_sprites"]
-checkpoint_tiles  = level_data["checkpoint_tiles"]
-last_checkpoint   = level_data["last_checkpoint_tile"]
-slimes            = level_data["slimes"]
-slime_boss        = level_data["slime_boss"]
-gate_tile         = level_data["gate_tile"]
+    # --- Load Level 1 ---
+    level_data = setup_level1()
+    tiles             = level_data["tiles"]
+    player            = level_data["player"]
+    all_sprites       = level_data["all_sprites"]
+    checkpoint_tiles  = level_data["checkpoint_tiles"]
+    last_checkpoint   = level_data["last_checkpoint_tile"]
+    slimes            = level_data["slimes"]
+    slime_boss        = level_data["slime_boss"]
+    gate_tile         = level_data["gate_tile"]
 
-#---load flyers---
-flyers = create_flyers()
+    #---load flyers---
+    flyers = create_flyers()
 
-#--- Create Menu ---
-menu = Menu(
-    screen=screen,
-    player=player,
-    tiles=tiles,
-    city_bg=city_bg,
-    tunnel_bg=tunnel_bg,
-    forest_bg=forest_bg,
-    level_length=level_length,
-    screen_width=WIDTH,
-    screen_height=HEIGHT
-)
-menu.run()
+    #---load timer---
+    game_timer = GameTimer()
 
-#---load skeleton boss---
-skeleton_boss = create_skeleton_boss()
+    #--- Create Menu ---
+    menu = Menu(
+        screen=screen,
+        player=player,
+        tiles=tiles,
+        city_bg=city_bg,
+        tunnel_bg=tunnel_bg,
+        forest_bg=forest_bg,
+        level_length=level_length,
+        screen_width=WIDTH,
+        screen_height=HEIGHT,
+        timer=game_timer
+    )
+    menu.run()
 
 # Initialize glowing orb image and sword trigger rect at the top
 sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
 sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
 sword_trigger_rect = sword_trigger_img.get_rect(topleft=(5000, 345))
 
-gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
-gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
-gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
 
 extra_health_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
 extra_health_img = pygame.transform.scale(extra_health_img, (55, 60))
@@ -93,12 +94,13 @@ shield_img = pygame.transform.scale(shield_img, (55, 60))
 shield_trigger_rect = shield_img.get_rect(topleft=(3000, 345))
 
 
-# --- Game Loop ---
+    # --- Game Loop ---
 running = True
+end_triggered = False
 while running:
     clock.tick(FPS)
 
-   
+    
 
     # Events
     for event in pygame.event.get():
@@ -145,6 +147,10 @@ while running:
                             shield_img = pygame.transform.scale(shield_img, (55, 60))
                             question_active = False
 
+                        else:
+                            print("Incorrect answer.")
+                            question_active = False
+                        user_input = ""
                     else:
                         print("Incorrect answer.") 
                         question_active = False
@@ -156,19 +162,19 @@ while running:
         if menu.check_settings_click(event):
             menu.pause_menu()
 
-    keys = pygame.key.get_pressed()
-    if not question_active:
-        player.update(keys, WIDTH, HEIGHT, tiles,sound_fx)
+        keys = pygame.key.get_pressed()
+        if not question_active:
+            player.update(keys, WIDTH, HEIGHT, tiles,sound_fx)
 
-    # Checkpoint system
-    for tile in checkpoint_tiles:
-        if player.rect.colliderect(tile.rect) and tile != last_checkpoint:
-            player.set_checkpoint(tile.rect.x + 50, tile.rect.y - player.rect.height)
-            last_checkpoint = tile
+        # Checkpoint system
+        for tile in checkpoint_tiles:
+            if player.rect.colliderect(tile.rect) and tile != last_checkpoint:
+                player.set_checkpoint(tile.rect.x + 50, tile.rect.y - player.rect.height)
+                last_checkpoint = tile
 
-    # Camera follow
-    camera_scroll = player.rect.centerx - WIDTH // 2
-    camera_scroll = max(0, min(camera_scroll, level_length - WIDTH))
+        # Camera follow
+        camera_scroll = player.rect.centerx - WIDTH // 2
+        camera_scroll = max(0, min(camera_scroll, level_length - WIDTH))
 
     if player.rect.colliderect(sword_trigger_rect) and not player.sword_unlocked and not question_active:
         current_prompt, correct_answer = questions()
@@ -187,47 +193,47 @@ while running:
         current_question_type = 'shield'
         question_active = True
 
-   # Draw background
-    bg_width = city_bg.get_width()
-    for i in range(-1, level_length // bg_width + 2):
-        screen.blit(city_bg, (i * bg_width - camera_scroll, 0))
+    # Draw background
+        bg_width = city_bg.get_width()
+        for i in range(-1, level_length // bg_width + 2):
+            screen.blit(city_bg, (i * bg_width - camera_scroll, 0))
 
-    # --- Background drawing with segments ---
-    bg_width = city_bg.get_width()
-    forest_width = forest_bg.get_width()
+        # --- Background drawing with segments ---
+        bg_width = city_bg.get_width()
+        forest_width = forest_bg.get_width()
 
-    # Loop city background until x = 4325
-    for i in range(-1, level_length // bg_width + 2):
-        draw_x = i * bg_width
-        world_x = draw_x + camera_scroll
+        # Loop city background until x = 4325
+        for i in range(-1, level_length // bg_width + 2):
+            draw_x = i * bg_width
+            world_x = draw_x + camera_scroll
 
-        if world_x + bg_width <= 4325:
-            screen.blit(city_bg, (draw_x - camera_scroll, 0))
+            if world_x + bg_width <= 4325:
+                screen.blit(city_bg, (draw_x - camera_scroll, 0))
 
-    # Draw tunnel background once between x = 4325 and x = 4900
-    tunnel_x_screen = 4325 - camera_scroll
-    if -tunnel_bg.get_width() < tunnel_x_screen < WIDTH:
-        screen.blit(tunnel_bg, (tunnel_x_screen, 0))
+        # Draw tunnel background once between x = 4325 and x = 4900
+        tunnel_x_screen = 4325 - camera_scroll
+        if -tunnel_bg.get_width() < tunnel_x_screen < WIDTH:
+            screen.blit(tunnel_bg, (tunnel_x_screen, 0))
 
-    # Loop forest background from x = 5100 onward
-    start = (5100 // forest_width) - 1
-    end = (level_length // forest_width) + 2
-    for i in range(start, end):
-        draw_x = i * forest_width
-        if draw_x >= 5100:
-            screen.blit(forest_bg, (draw_x - camera_scroll, 0))
-    # Draw tiles
-    for tile in tiles:
-        tile.update_gate()
-        tile.draw(screen, camera_scroll)
-        if tile in checkpoint_tiles:
-            pygame.draw.circle(screen, (255, 255, 0), (tile.rect.centerx - camera_scroll, tile.rect.top - 20), 10)
-        # Red box for tile
-        pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)
+        # Loop forest background from x = 5100 onward
+        start = (5100 // forest_width) - 1
+        end = (level_length // forest_width) + 2
+        for i in range(start, end):
+            draw_x = i * forest_width
+            if draw_x >= 5100:
+                screen.blit(forest_bg, (draw_x - camera_scroll, 0))
+        # Draw tiles
+        for tile in tiles:
+            tile.update_gate()
+            tile.draw(screen, camera_scroll)
+            if tile in checkpoint_tiles:
+                pygame.draw.circle(screen, (255, 255, 0), (tile.rect.centerx - camera_scroll, tile.rect.top - 20), 10)
+            # Red box for tile
+            pygame.draw.rect(screen, (255, 0, 0), tile.rect.move(-camera_scroll, 0), 2)
 
-    # Gate logic
-    if slime_boss.dead:
-        gate_tile.gate_opening = True
+        # Gate logic
+        if slime_boss.dead:
+            gate_tile.gate_opening = True
 
     # Draw slimes
     for slime in slimes:
@@ -235,12 +241,12 @@ while running:
         screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
         slime.draw_healthbar(screen, camera_scroll)
 
-    #draw flyers
-    for flyer in flyers:
-        flyer.update(player, tiles,sound_fx)
-        flyer.draw_healthbar(screen, camera_scroll)
-        flyer.draw_hitbox(screen, camera_scroll)
-        screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
+        #draw flyers
+        for flyer in flyers:
+            flyer.update(player, tiles,sound_fx)
+            flyer.draw_healthbar(screen, camera_scroll)
+            flyer.draw_hitbox(screen, camera_scroll)
+            screen.blit(flyer.image, (flyer.rect.x - camera_scroll, flyer.rect.y))
 
     # Draw skeleton boss
     skeleton_boss.update(player, tiles,sound_fx)
@@ -264,15 +270,6 @@ while running:
             player.reset()
         pygame.draw.rect(screen, (255, 0, 0), sprite.rect.move(-camera_scroll, 0), 2)
 
-    if question_active:
-        font = pygame.font.SysFont(None, 32)
-        lines = current_prompt.split('\n')
-        for i, line in enumerate(lines):
-            line_surf = font.render(line, True, (255, 255, 255))
-            screen.blit(line_surf, (WIDTH // 2 - line_surf.get_width() // 2, 200 + i * 40))
-        input_surf = font.render(user_input, True, (200, 200, 0))
-        screen.blit(input_surf, (WIDTH // 2 - input_surf.get_width() // 2, 200 + len(lines) * 40))
-
     if show_popup:
         font = pygame.font.SysFont(None, 36)
         if current_question_type == 'sword':
@@ -288,13 +285,36 @@ while running:
         if pygame.time.get_ticks() - popup_timer > 3000:
             show_popup = False
 
-    # Draw the glowing orb
-    screen.blit(sword_trigger_img, (sword_trigger_rect.x - camera_scroll, sword_trigger_rect.y))
-    screen.blit(gun_trigger_img, (gun_trigger_rect.x - camera_scroll, gun_trigger_rect.y))
+        if question_active:
+            font = pygame.font.SysFont(None, 32)
+            lines = current_prompt.split('\n')
+            for i, line in enumerate(lines):
+                line_surf = font.render(line, True, (255, 255, 255))
+                screen.blit(line_surf, (WIDTH // 2 - line_surf.get_width() // 2, 200 + i * 40))
+            input_surf = font.render(user_input, True, (200, 200, 0))
+            screen.blit(input_surf, (WIDTH // 2 - input_surf.get_width() // 2, 200 + len(lines) * 40))
 
-    menu.draw_settings_icon()
+        if show_popup:
+            font = pygame.font.SysFont(None, 36)
+            popup_text = "You can now use the sword power-up!" if current_question_type == 'sword' else "You can now use the gun power-up!"
+            popup_surf = font.render(popup_text, True, (0, 255, 0))
+            screen.blit(popup_surf, (WIDTH // 2 - popup_surf.get_width() // 2, HEIGHT // 2))
+            if pygame.time.get_ticks() - popup_timer > 3000:
+                show_popup = False
 
-    pygame.display.flip()
+        # Draw the glowing orb
+        screen.blit(sword_trigger_img, (sword_trigger_rect.x - camera_scroll, sword_trigger_rect.y))
+        screen.blit(gun_trigger_img, (gun_trigger_rect.x - camera_scroll, gun_trigger_rect.y))
 
-pygame.quit()
-sys.exit()
+        menu.draw_settings_icon()
+        game_timer.render(screen, pygame.font.SysFont(None, 30), WIDTH)
+
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
+if __name__ == "__main__":
+        while True:
+            result = run_game()
+            if result != 'restart':
+                break  # Exit the loop if not restarting
