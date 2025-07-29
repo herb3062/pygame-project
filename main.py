@@ -78,11 +78,19 @@ skeleton_boss = create_skeleton_boss()
 # Initialize glowing orb image and sword trigger rect at the top
 sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
 sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
-sword_trigger_rect = sword_trigger_img.get_rect(topleft=(300, 445))
+sword_trigger_rect = sword_trigger_img.get_rect(topleft=(5000, 345))
 
 gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
 gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
 gun_trigger_rect = gun_trigger_img.get_rect(topleft=(8600, 345))
+
+extra_health_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
+extra_health_img = pygame.transform.scale(extra_health_img, (55, 60))
+extra_health_rect = extra_health_img.get_rect(topleft=(300, 445))
+
+shield_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
+shield_img = pygame.transform.scale(shield_img, (55, 60))
+shield_trigger_rect = shield_img.get_rect(topleft=(3000, 345))
 
 
 # --- Game Loop ---
@@ -109,6 +117,7 @@ while running:
                             print("Correct! Sword unlocked.")
                             sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
                             sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
+                            question_active = False
                         elif current_question_type == 'gun':
                             player.gun_unlocked = True
                             show_popup = True
@@ -116,10 +125,28 @@ while running:
                             print("Correct! Gun unlocked.")
                             gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
                             gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
-                        question_active = False
+                            question_active = False
+                        elif current_question_type == 'extra_health':
+                            player.extra_health = True
+                            player.max_health += 50
+                            player.current_health = player.max_health
+                            question_active = False
+                            show_popup = True
+                            popup_timer = pygame.time.get_ticks()
+                            print("Correct! Extra health granted.")
+                            extra_health_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
+                            extra_health_img = pygame.transform.scale(extra_health_img, (55, 60))
+                        elif current_question_type == 'shield':
+                            player.shield_unlocked = True 
+                            show_popup = True
+                            popup_timer = pygame.time.get_ticks()
+                            print("Correct! Shield unlocked.")
+                            shield_img = pygame.image.load("assets/tiles and stuff/treasure_chestopen.png").convert_alpha()
+                            shield_img = pygame.transform.scale(shield_img, (55, 60))
+                            question_active = False
 
                     else:
-                        print("Incorrect answer.")
+                        print("Incorrect answer.") 
                         question_active = False
                     user_input = ""
                 else:
@@ -150,6 +177,14 @@ while running:
     elif player.rect.colliderect(gun_trigger_rect) and not player.gun_unlocked and not question_active:
         current_prompt, correct_answer = questions()
         current_question_type = 'gun'
+        question_active = True
+    elif player.rect.colliderect(extra_health_rect) and not player.extra_health and not question_active:
+        current_prompt, correct_answer = questions()
+        current_question_type = 'extra_health'
+        question_active = True
+    elif player.rect.colliderect(shield_trigger_rect) and not player.shield_unlocked and not question_active:
+        current_prompt, correct_answer = questions()
+        current_question_type = 'shield'
         question_active = True
 
    # Draw background
@@ -193,10 +228,11 @@ while running:
     # Gate logic
     if slime_boss.dead:
         gate_tile.gate_opening = True
+        sound_fx['gate_open'].play()
 
     # Draw slimes
     for slime in slimes:
-        slime.update(player, tiles,sound_fx)
+        slime.update(player, tiles,sound_fx,camera_scroll, WIDTH)
         screen.blit(slime.image, (slime.rect.x - camera_scroll, slime.rect.y))
         slime.draw_healthbar(screen, camera_scroll)
 
@@ -213,6 +249,12 @@ while running:
         screen.blit(skeleton.image, (skeleton.rect.x - camera_scroll, skeleton.rect.y))
         skeleton.draw_healthbar(screen, camera_scroll)
         
+    # Draw all chests
+    screen.blit(sword_trigger_img, (sword_trigger_rect.x - camera_scroll, sword_trigger_rect.y))
+    screen.blit(gun_trigger_img, (gun_trigger_rect.x - camera_scroll, gun_trigger_rect.y))
+    screen.blit(extra_health_img, (extra_health_rect.x - camera_scroll, extra_health_rect.y))
+    screen.blit(shield_img, (shield_trigger_rect.x - camera_scroll, shield_trigger_rect.y))
+
     # Draw player
     for sprite in all_sprites:
         screen.blit(player.image, (player.rect.x - camera_scroll, player.rect.y))
@@ -234,7 +276,14 @@ while running:
 
     if show_popup:
         font = pygame.font.SysFont(None, 36)
-        popup_text = "You can now use the sword power-up!" if current_question_type == 'sword' else "You can now use the gun power-up!"
+        if current_question_type == 'sword':
+            popup_text = "You can now use the sword power-up!"
+        elif current_question_type == 'gun':
+            popup_text = "You can now use the gun power-up!"
+        elif current_question_type == 'extra_health':
+            popup_text = "Extra health granted!"
+        elif current_question_type == 'shield':
+            popup_text = "Shield power activated!"
         popup_surf = font.render(popup_text, True, (0, 255, 0))
         screen.blit(popup_surf, (WIDTH // 2 - popup_surf.get_width() // 2, HEIGHT // 2))
         if pygame.time.get_ticks() - popup_timer > 3000:

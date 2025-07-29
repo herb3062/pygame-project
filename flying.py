@@ -98,17 +98,30 @@ class Flyer(pygame.sprite.Sprite):
             return
 
         # Player attack damage
-        if self.hitbox.colliderect(player.hitbox) and player.state in ('attack', 'sword_attack'):
-            if not self.has_damaged:
-                damage = player.weapon_damage if player.state == 'sword_attack' else player.damage
-                self.current_health -= damage
-               
+        if player.state == 'gun_attack' and not self.has_damaged:
+            dx = self.hitbox.centerx - player.hitbox.centerx
+            in_range = abs(dx) <= player.gun_range
+            facing_right = player.direction == 'right' and dx > 0
+            facing_left = player.direction == 'left' and dx < 0
+
+            if in_range and (facing_right or facing_left):
+                self.current_health -= player.gun_damage
                 self.has_damaged = True
                 if self.current_health <= 0:
                     self.dead = True
-                    self.frame_index = 0
                     self.death_timer = 0
-                    return
+                    sound_fx['slime_death'].play()
+        elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
+            if not self.has_damaged:
+                damage = player.sword_damage if player.state == 'sword_attack' else player.damage
+                self.current_health -= damage
+                self.has_damaged = True
+                if self.current_health <= 0:
+                    self.dead = True
+                    self.death_timer = 0
+                    sound_fx['slime_death'].play()
+        elif player.state not in ('attack', 'sword_attack'):
+            self.has_damaged = False
         # Reset damage state if player is not attacking
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False  # Reset once player stops attacking
@@ -167,6 +180,9 @@ class Flyer(pygame.sprite.Sprite):
                 player.current_health -= 25
                 player.invincible = True
                 player.invincible_timer = 0
+                sound_fx['player_damage'].play()
+                if player.current_health <= 0:
+                    sound_fx['player_death'].play()
 
             # Ground collision
             for tile in tiles:
