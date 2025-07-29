@@ -145,6 +145,8 @@ class Menu:
             {"label": "Attack",      "img_path": "assets/menu/e.png",       "pos": (self.WIDTH // 2 - 150, 260)},
             {"label": "Sword",       "img_path": "assets/menu/s.png",        "pos": (self.WIDTH // 2 - 150, 340)},
             {"label": "Run",         "img_path": "assets/menu/space.png",        "pos": (self.WIDTH // 2 - 150, 420)},
+            {"label": "Gun",         "img_path": "assets/menu/d.png",        "pos": (self.WIDTH // 2 - 150, 500)},
+
         ]
 
         # Load and scale each image
