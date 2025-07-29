@@ -1,7 +1,7 @@
 import pygame
 
 class SkeletonBoss(pygame.sprite.Sprite):
-    def __init__(self, x, y, frame_width, frame_height, scale_size=(128, 128), left_bound=8800, right_bound=9400):
+    def __init__(self, x, y, frame_width, frame_height, scale_size=(128, 128), left_bound=8300, right_bound=9400):
         super().__init__()
         self.scale_size = scale_size
         self.frame_width = frame_width
