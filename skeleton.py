@@ -35,10 +35,10 @@ class SkeletonBoss(pygame.sprite.Sprite):
         self.attack_timer = 0
         self.has_damaged_player = False
         self.attack_range = 75  # distance to trigger attack
-        self.damage = 50
+        self.damage = 40
         self.has_damaged_player = False
         self.dead = False  
-        self.max_health = 100
+        self.max_health = 150
         self.current_health = self.max_health
 
         # Lives and respawn

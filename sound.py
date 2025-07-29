@@ -1,6 +1,7 @@
 import pygame
 
 def sounds():
+    gate_open = pygame.mixer.Sound("assets/sounds/gate_open.mp3")
     slime_jump = pygame.mixer.Sound("assets/sounds/slimejump-6913.mp3")
     slime_attack = pygame.mixer.Sound("assets/sounds/slime-impact-352473.mp3")
     slime_death = pygame.mixer.Sound("assets/sounds/slime-splat-1-219248.mp3")
@@ -12,10 +13,14 @@ def sounds():
     player_gunattack = pygame.mixer.Sound("assets/sounds/gun_shot.mp3")
     skeleton_attack = pygame.mixer.Sound("assets/sounds/skeleton_attack.mp3")
     skeleton_death = pygame.mixer.Sound("assets/sounds/skeleton_death.mp3")
+    flyer_impact = pygame.mixer.Sound("assets/sounds/flyer_impact.mp3") 
+    flyer_death = pygame.mixer.Sound("assets/sounds/flyer_death.mp3")   
     chest_open = pygame.mixer.Sound("assets/sounds/chest_open.mp3")
     background_music = pygame.mixer.Sound("assets/sounds/background_music.mp3")
     background_music.play(-1)  
     return {
+        "gate_open": gate_open,
+
         "slime_jump": slime_jump,
         "slime_attack": slime_attack,
         "slime_death": slime_death,
@@ -27,6 +32,8 @@ def sounds():
         "player_gunattack": player_gunattack,
         "skeleton_attack": skeleton_attack,
         "skeleton_death": skeleton_death,
+        "flyer_impact": flyer_impact,
+        "flyer_death": flyer_death,
         "chest_open": chest_open,
         "background_music": background_music
     }

@@ -52,8 +52,8 @@ class Player(pygame.sprite.Sprite):
         self.speed = 3
         self.run_speed=5
         self.damage= 10
-        self.sword_damage = 20
-        self.gun_damage = 3
+        self.sword_damage = 10
+        self.gun_damage = 20
         self.gun_range = 150  # pixels
         self.jump_power = 17
         self.gravity = 1
@@ -82,7 +82,7 @@ class Player(pygame.sprite.Sprite):
         self.has_damaged = False
        
         self.shield_unlocked = False
-        self.shield_duration = 120  # frames
+        self.shield_duration = 1800 # frames
         self.shield_timer = 0
         self.sword_unlocked = False
         self.gun_unlocked = False
@@ -101,6 +101,9 @@ class Player(pygame.sprite.Sprite):
         self.hitbox.bottom = self.rect.bottom      
 
         self.bullets = pygame.sprite.Group()
+
+        self.glow_image = pygame.image.load("assets/character_animations/shield_glow.png").convert_alpha()
+        self.glow_image = pygame.transform.scale(self.glow_image, (80, 80))
 
     def load_images(self, file_list, base_path="assets/character_animations/"):
     # """Load → crop transparent padding under feet → return Surfaces."""
@@ -226,15 +229,20 @@ class Player(pygame.sprite.Sprite):
             self.current_health = self.max_health
             self.state = 'idle'
 
-        # Invincibility timer logic
-        if self.invincible or (self.shield_unlocked and self.shield_timer < self.shield_duration):
+        # Invincibility and shield timer logic
+        if self.shield_unlocked:
+            self.invincible = True
             self.shield_timer += 1
+            if self.shield_timer >= self.shield_duration:
+                self.shield_unlocked = False
+                self.invincible = False
+                self.shield_timer = 0
+
+        if self.invincible and not self.shield_unlocked:
             self.invincible_timer += 1
             if self.invincible_timer >= self.invincible_duration:
                 self.invincible = False
                 self.invincible_timer = 0
-            if self.shield_timer >= self.shield_duration:
-                self.shield_timer = 0
 
 
         self.animate()
@@ -323,6 +331,12 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(surface,(255,0,0),(bar_x,bar_y,bar_width,bar_height))
 
         pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
+
+    def draw_ui(self, surface, camera_scroll=0):
+        if self.shield_unlocked:
+            glow_x = self.rect.centerx - self.glow_image.get_width() // 2 - camera_scroll
+            glow_y = self.rect.centery - self.glow_image.get_height() // 2
+            surface.blit(self.glow_image, (glow_x, glow_y))
 
 
     # Reset player position and state

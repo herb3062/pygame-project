@@ -110,7 +110,7 @@ class Flyer(pygame.sprite.Sprite):
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
-                    sound_fx['slime_death'].play()
+                    sound_fx['flyer_death'].play()
         elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
             if not self.has_damaged:
                 damage = player.sword_damage if player.state == 'sword_attack' else player.damage
@@ -119,7 +119,7 @@ class Flyer(pygame.sprite.Sprite):
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
-                    sound_fx['slime_death'].play()
+                    sound_fx['flyer_death'].play()
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False
         # Reset damage state if player is not attacking
@@ -151,10 +151,10 @@ class Flyer(pygame.sprite.Sprite):
                 
                 # Float up if player is above
                 if player.rect.centery < self.rect.centery - 10:
-                    self.rect.y -= 2  # You can tweak speed
+                    self.rect.y -= 5  # You can tweak speed
                     self.hitbox.y = self.rect.y
                 elif player.rect.centery > self.rect.centery + 10:
-                    self.rect.y += 2
+                    self.rect.y += 5
                     self.hitbox.y = self.rect.y
 
                 self.rect.x = next_x
@@ -180,6 +180,7 @@ class Flyer(pygame.sprite.Sprite):
                 player.current_health -= 25
                 player.invincible = True
                 player.invincible_timer = 0
+                sound_fx['flyer_impact'].play()
                 sound_fx['player_damage'].play()
                 if player.current_health <= 0:
                     sound_fx['player_death'].play()
@@ -192,6 +193,7 @@ class Flyer(pygame.sprite.Sprite):
                     self.velocity_y = 0
                     self.state = 'attack_end'
                     self.frame_index = 0
+                    sound_fx['flyer_impact'].play()
                     break
         # End of attack sequence
         elif self.state == 'attack_end':
