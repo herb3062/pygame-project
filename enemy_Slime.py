@@ -4,9 +4,9 @@ import pygame
 from main_character import Player
 
 class Slime(pygame.sprite.Sprite):
-    def __init__(self, x, y, sprite_sheet, frame_width, frame_height, num_frames, left_bound, right_bound, speed=2):
+    def __init__(self, x, y, sprite_sheet, frame_width, frame_height, num_frames, left_bound, right_bound, speed=2, scale_size=(128, 128)):
         super().__init__()
-
+        self.scale_size = scale_size
         self.frames = self.load_frames(sprite_sheet, frame_width, frame_height, num_frames)
         self.walk_frames = self.frames
 
@@ -66,7 +66,7 @@ class Slime(pygame.sprite.Sprite):
         for i in range(num_frames):
             frame = sprite_sheet.subsurface((i * frame_width, 0, frame_width, frame_height))
             #scale down if too large
-            frame = pygame.transform.scale(frame, (128, 128))
+            frame = pygame.transform.scale(frame, self.scale_size)
             frames.append(frame)
         return frames
 
@@ -78,6 +78,7 @@ class Slime(pygame.sprite.Sprite):
                 self.dead = False
                 self.current_health = self.max_health
                 self.hitbox.topleft = (self.spawn_x, self.spawn_y)
+                self.rect.midbottom = self.hitbox.midbottom
                 self.velocity_y = 0
             self.image.set_alpha(0)
             return
@@ -147,8 +148,14 @@ class Slime(pygame.sprite.Sprite):
                     self.on_ground = True
 
         # Turn around at bounds
-        if self.hitbox.left <= self.left_bound or self.hitbox.right >= self.right_bound:
-            self.direction *= -1
+        # Add buffer to prevent rapid flipping
+        buffer = 5
+
+        if self.on_ground:
+            if self.direction == -1 and self.hitbox.left <= self.left_bound + buffer:
+                self.direction = 1
+            elif self.direction == 1 and self.hitbox.right >= self.right_bound - buffer:
+                self.direction = -1
 
         # Sync visual sprite with hitbox
         self.rect.midbottom = self.hitbox.midbottom
