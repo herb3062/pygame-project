@@ -44,10 +44,9 @@ class Player(pygame.sprite.Sprite):
 
         self.current_frame = 0
         self.frame_counter = 0
-        self.image = self.idle_images[0]
-
-        self.max_health=100
-        self.current_health = 100
+        self.extra_health = False
+        self.max_health=150 if self.extra_health else 100
+        self.current_health = self.max_health
 
         # Load the sprite sheet for the player
         self.speed = 3
@@ -82,10 +81,19 @@ class Player(pygame.sprite.Sprite):
 
         self.has_damaged = False
        
+        self.shield_unlocked = False
+        self.shield_duration = 120  # frames
+        self.shield_timer = 0
         self.sword_unlocked = False
         self.gun_unlocked = False
 
+        self.bullet_cooldown = 15
+        self.bullet_timer = 0
+        self.max_ammo = 3
+        self.current_ammo = self.max_ammo
+
         # Set the initial rect and hitbox
+        self.image = self.idle_images[0]
         self.rect  = self.image.get_rect(topleft=(x, y))
 
         # Shrink width and height so the feet rest exactly on the tiles
@@ -107,7 +115,7 @@ class Player(pygame.sprite.Sprite):
             images.append(img)
         return images
 
-    def update(self, keys,screen_width, screen_height, tiles,sound_fx):
+    def update(self, keys, screen_width, screen_height, tiles, sound_fx):
         dx=0
 
         if self.state != 'attack':
@@ -151,7 +159,7 @@ class Player(pygame.sprite.Sprite):
                 self.state = 'sword_attack'
                 sound_fx['player_swordattack'].play()
 
-            if keys[pygame.K_d] and self.gun_unlocked and self.state != 'gun_attack':
+            if keys[pygame.K_d] and self.gun_unlocked and self.state != 'gun_attack' and self.current_ammo > 0 and self.bullet_timer == 0:
                 self.state = 'gun_attack'
                 self.current_frame = 0
                 self.frame_counter = 0
@@ -160,6 +168,8 @@ class Player(pygame.sprite.Sprite):
                 bullet_x = self.rect.right if self.direction == 'right' else self.rect.left
                 bullet = Bullet(bullet_x, bullet_y, 1 if self.direction == 'right' else -1)
                 self.bullets.add(bullet)
+                self.current_ammo -= 1
+                self.bullet_timer = self.bullet_cooldown
 
 
         ## Gravity and vertical movement
@@ -211,20 +221,27 @@ class Player(pygame.sprite.Sprite):
             self.hitbox.topleft = (100, 0)
             self.velocity_y = 0
             self.on_ground = False
+            self.max_health = 150 if self.extra_health else 100
             self.current_health = self.max_health
             self.state = 'idle'
 
         # Invincibility timer logic
-        if self.invincible:
+        if self.invincible or (self.shield_unlocked and self.shield_timer < self.shield_duration):
+            self.shield_timer += 1
             self.invincible_timer += 1
             if self.invincible_timer >= self.invincible_duration:
                 self.invincible = False
                 self.invincible_timer = 0
+            if self.shield_timer >= self.shield_duration:
+                self.shield_timer = 0
 
 
         self.animate()
 
         self.bullets.update()
+
+        if self.bullet_timer > 0:
+            self.bullet_timer -= 1
 
 
     def animate(self):
@@ -296,7 +313,7 @@ class Player(pygame.sprite.Sprite):
         # Reset alpha when not invincible    
 
     def draw_healthbar(self,surface, camera_scroll=0):
-        bar_width = 100
+        bar_width = 150 if self.extra_health else 100
         bar_height= 8
         bar_x = self.rect.x - camera_scroll
         bar_y = self.rect.y - 20
@@ -311,6 +328,7 @@ class Player(pygame.sprite.Sprite):
     def reset(self):
         self.rect.topleft = (self.respawn_x, self.respawn_y)
         self.hitbox.midbottom = self.rect.midbottom
+        self.max_health = 150 if self.extra_health else 100
         self.current_health = self.max_health
         self.velocity_y = 0
         self.invincible = False
@@ -330,11 +348,15 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load("assets/character_animations/bullet.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (10, 10))
+        if direction == -1:
+            self.image = pygame.transform.flip(self.image, True, False)
         self.rect = self.image.get_rect(center=(x, y))
         self.direction = direction
         self.speed = 10
+        self.distance_traveled = 0
 
     def update(self):
         self.rect.x += self.speed * self.direction
-        if self.rect.right < 0 or self.rect.left > 10000:
+        self.distance_traveled += abs(self.speed)
+        if self.rect.right < 0 or self.rect.left > 10000 or self.distance_traveled > 600:
             self.kill()

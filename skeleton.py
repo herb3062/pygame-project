@@ -164,12 +164,15 @@ class SkeletonBoss(pygame.sprite.Sprite):
 
             # Damage player at mid-frame
             if not self.has_damaged_player and self.frame_index == len(self.attack_frames) // 2:
-                if self.rect.colliderect(player.rect) and not player.invincible:
+                if self.rect.colliderect(player.rect) and not player.invincible and not (player.shield_unlocked and player.shield_timer < player.shield_duration):
                     player.current_health -= self.damage
+                    sound_fx["player_damage"].play()
                     player.invincible = True
                     player.invincible_timer = 0
                     self.has_damaged_player = True
                     sound_fx["skeleton_attack"].play()
+                    if player.current_health <= 0:
+                        sound_fx["player_death"].play()
 
             return  # Skip movement if attacking
 

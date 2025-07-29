@@ -25,7 +25,7 @@ class slime_boss(Slime):
         self.knockback_strength = 20
         self.scale = 1.5
 
-    def update(self, player, tiles,sound_fx):
+    def update(self, player, tiles,sound_fx,camera_scroll, screen_width):
         if self.dead:
             # Permanently dead — don't respawn
             self.image.set_alpha(0)
@@ -58,7 +58,7 @@ class slime_boss(Slime):
                     self.dead = True
                     self.death_timer = 0
                     sound_fx['slime_death'].play()
-                    
+
         elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
             if not self.has_damaged:
                 damage = player.sword_damage if player.state == 'sword_attack' else player.damage
@@ -74,7 +74,7 @@ class slime_boss(Slime):
         # Boss attack + knockback
         self.attacking = self.hitbox.colliderect(player.rect)
         if self.attacking:
-            if not self.has_damaged and not player.invincible:
+            if not self.has_damaged and not player.invincible and not (player.shield_unlocked and player.shield_timer < player.shield_duration):
                 player.current_health -= self.damage
                 player.invincible = True
                 player.invincible_timer = 0

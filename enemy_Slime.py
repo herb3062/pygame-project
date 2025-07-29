@@ -69,7 +69,13 @@ class Slime(pygame.sprite.Sprite):
             frames.append(frame)
         return frames
 
-    def update(self, player, tiles,sound_fx):
+    def is_visible(self, camera_scroll, screen_width):
+        return (
+            self.rect.right > camera_scroll and
+            self.rect.left < camera_scroll + screen_width
+        )
+
+    def update(self, player, tiles, sound_fx, camera_scroll, screen_width):
         # Death and respawn
         if self.dead:
             self.death_timer += 1
@@ -94,7 +100,8 @@ class Slime(pygame.sprite.Sprite):
             if self.current_health <= 0:
                 self.dead = True
                 self.death_timer = 0
-                sound_fx["slime_death"].play()
+                if self.is_visible(camera_scroll, screen_width):
+                    sound_fx["slime_death"].play()
 
         # Player gun attack damage (updated logic)
         if player.state == 'gun_attack' and not self.has_damaged:
@@ -109,7 +116,8 @@ class Slime(pygame.sprite.Sprite):
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
-                    sound_fx['slime_death'].play()
+                    if self.is_visible(camera_scroll, screen_width):
+                        sound_fx['slime_death'].play()
         elif player.state in ('attack', 'sword_attack') and self.hitbox.colliderect(player.hitbox):
             if not self.has_damaged:
                 damage = player.sword_damage if player.state == 'sword_attack' else player.damage
@@ -118,20 +126,25 @@ class Slime(pygame.sprite.Sprite):
                 if self.current_health <= 0:
                     self.dead = True
                     self.death_timer = 0
-                    sound_fx['slime_death'].play()
+                    if self.is_visible(camera_scroll, screen_width):
+                        sound_fx['slime_death'].play()
         elif player.state not in ('attack', 'sword_attack'):
             self.has_damaged = False
 
         # Player damage
         self.attacking = self.hitbox.colliderect(player.rect)
         if self.attacking:
-            if not self.has_damaged and not player.invincible:
+            if not self.has_damaged and not player.invincible and not (player.shield_unlocked and player.shield_timer < player.shield_duration):
                 player.current_health -= 5
                 player.invincible = True
                 player.invincible_timer = 0
                 self.has_damaged = True
-                sound_fx["slime_attack"].play()
-                sound_fx["player_death"].play() 
+                if self.is_visible(camera_scroll, screen_width):
+                    sound_fx["slime_attack"].play()
+                    sound_fx["player_damage"].play()
+            if player.current_health <= 0:
+                if self.is_visible(camera_scroll, screen_width):
+                    sound_fx["player_death"].play() 
         else:
             self.has_damaged = False
 
@@ -142,7 +155,8 @@ class Slime(pygame.sprite.Sprite):
             self.jumping = True 
             self.horizontal_velocity = self.speed * self.direction  # Start horizontal move
             self.jump_timer = 0
-            sound_fx["slime_jump"].play()
+            if self.is_visible(camera_scroll, screen_width):
+                sound_fx["slime_jump"].play()
         else:
             self.horizontal_velocity = 0
 
@@ -242,5 +256,3 @@ def create_blueslime_at(x, y, left_bound, right_bound,):
         right_bound=right_bound,
         speed=2,
     )
-
- 
