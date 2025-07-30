@@ -50,6 +50,7 @@ def run_game():
     slimes = level_data["slimes"]
     slime_boss = level_data["slime_boss"]
     gate_tile = level_data["gate_tile"]
+    gate_tile.sound_played = False
 
     flyers = create_flyers()
     skeleton_boss = create_skeleton_boss()
@@ -70,8 +71,7 @@ def run_game():
 
     sword_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
     sword_trigger_img = pygame.transform.scale(sword_trigger_img, (55, 60))
-    sword_trigger_rect = sword_trigger_img.get_rect(topleft=(5000, 345))
-    sword_trigger_rect = sword_trigger_img.get_rect(topleft=(3500, 345))
+    sword_trigger_rect = sword_trigger_img.get_rect(topleft=(3500, 445))
 
     gun_trigger_img = pygame.image.load("assets/tiles and stuff/treasure_chest.png").convert_alpha()
     gun_trigger_img = pygame.transform.scale(gun_trigger_img, (55, 60))
@@ -195,6 +195,9 @@ def run_game():
 
         if slime_boss.dead:
             gate_tile.gate_opening = True
+            if not gate_tile.sound_played:
+                sound_fx['gate_open'].play()
+                gate_tile.sound_played = True
 
         for slime in slimes:
             if abs(slime.rect.x - camera_scroll) < WIDTH + 100:
@@ -257,6 +260,8 @@ def run_game():
                 popup_text = "You now have a shield!"
             elif current_question_type == 'extra_health':
                 popup_text = "You just gained extra health!"
+            elif current_question_type == 'emergency_health':
+                popup_text = "You gained 50 health!"
             else:
                 popup_text = ""
 

@@ -180,8 +180,9 @@ class Flyer(pygame.sprite.Sprite):
                 player.current_health -= 25
                 player.invincible = True
                 player.invincible_timer = 0
-                sound_fx['flyer_impact'].play()
-                sound_fx['player_damage'].play()
+                if abs(self.rect.x - player.rect.x) < 900:  # or appropriate WIDTH
+                    sound_fx['flyer_impact'].play()
+                    sound_fx['player_damage'].play()
                 if player.current_health <= 0:
                     sound_fx['player_death'].play()
 
