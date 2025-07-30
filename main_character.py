@@ -82,14 +82,14 @@ class Player(pygame.sprite.Sprite):
         self.has_damaged = False
        
         self.shield_unlocked = False
-        self.shield_duration = 1800 # frames
+        self.shield_duration = 400 # frames
         self.shield_timer = 0
         self.sword_unlocked = False
         self.gun_unlocked = False
 
         self.bullet_cooldown = 15
         self.bullet_timer = 0
-        self.max_ammo = 3
+        self.max_ammo = 20
         self.current_ammo = self.max_ammo
 
         # Set the initial rect and hitbox
@@ -205,8 +205,8 @@ class Player(pygame.sprite.Sprite):
 
         
 
-        if self.hitbox.top > 1000: 
-            self.hitbox.topleft = (100, 0)
+        if self.hitbox.top > 1000:
+            self.reset()
             self.velocity_y = 0
             self.state      = 'idle'
             self.on_ground  = True
@@ -221,8 +221,7 @@ class Player(pygame.sprite.Sprite):
 
 
         if self.current_health <= 0:
-            # Respawn logic
-            self.hitbox.topleft = (100, 0)
+            self.reset()
             self.velocity_y = 0
             self.on_ground = False
             self.max_health = 150 if self.extra_health else 100
@@ -339,9 +338,15 @@ class Player(pygame.sprite.Sprite):
             surface.blit(self.glow_image, (glow_x, glow_y))
 
 
+    def set_checkpoint(self, x, y):
+        self.checkpoint_x = x
+        self.checkpoint_y = y
+        print(f"Checkpoint set to ({x}, {y})")
+
     # Reset player position and state
     def reset(self):
-        self.rect.topleft = (self.respawn_x, self.respawn_y)
+        print(f"Respawning at ({self.checkpoint_x}, {self.checkpoint_y})")
+        self.rect.topleft = (self.checkpoint_x, self.checkpoint_y)
         self.hitbox.midbottom = self.rect.midbottom
         self.max_health = 150 if self.extra_health else 100
         self.current_health = self.max_health
@@ -349,9 +354,10 @@ class Player(pygame.sprite.Sprite):
         self.invincible = False
         self.invincible_timer = 0
 
-    def set_checkpoint(self, x, y):
-        self.respawn_x = x
-        self.respawn_y = y
+        self.state = 'idle'
+        self.prev_state = None  # <--- FORCE animation reset
+        self.current_frame = 0
+        self.frame_counter = 0
 
     def draw_bullets(self, surface, camera_scroll):
         for bullet in self.bullets:
